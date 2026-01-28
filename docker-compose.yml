@@ -5,10 +5,14 @@ services:
       dockerfile: scrapers/dockerfile
     container_name: scraper
     ports:
-      - "8000:8000"
+      - "8001:8000"
     restart: unless-stopped
     volumes:
       - ./storage:/app/storage
+    networks:
+      - betting-network
+    environment:
+      - API_URL=http://api:8000/api/odds/scraper
 
   n8n:
     image: n8nio/n8n:2.4.6
@@ -93,9 +97,10 @@ services:
 
 volumes:
   postgres_data:
+  n8n_data:
 
 networks:
   betting-network:
     driver: bridge
-  n8n_data:
+  
   

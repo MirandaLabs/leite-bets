@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from scrapers.workflows.run_bet365 import run as run_bet365
 from scrapers.workflows.run_betano import run as run_betano
+from scrapers.workflows.run_superbet import run as run_superbet
 from scrapers.base.betano.collector import collect as collect_betano_raw
 from playwright.sync_api import sync_playwright
 
@@ -66,6 +67,16 @@ def scrape_betano():
     data = run_betano()
     return {
         "source": "betano",
+        "items": len(data),
+        "data": data
+    }
+
+
+@router.post("/scrape/superbet")
+def scrape_superbet():
+    data = run_superbet()
+    return {
+        "source": "superbet",
         "items": len(data),
         "data": data
     }
