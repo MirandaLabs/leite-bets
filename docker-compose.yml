@@ -12,7 +12,64 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     restart: unless-stopped
+    networks:
+      - betting-network
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: betting-bot-api
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres123@postgres:5432/betting_bot
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "
+      echo 'Aguardando PostgreSQL...' &&
+      sleep 5 &&
+      echo 'Criando tabelas...' &&
+      python -c 'from models import Base, engine; Base.metadata.create_all(engine)' &&
+      echo 'Iniciando API...' &&
+      uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+      "
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+    networks:
+      - betting-network
+
+  bot:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: betting-bot-telegram
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres123@postgres:5432/betting_bot
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
+    depends_on:
+      - api
+    command: python telegram_bot_auto.py
+    volumes:
+      - ./backend:/app
+    restart: unless-stopped
+    networks:
+      - betting-network
 
 volumes:
   postgres_data:
+
+networks:
+  betting-network:
+    driver: bridge
