@@ -78,11 +78,28 @@ def collect():
             logger.info(f"Found {len(match_elements)} matches on main page")
             
             all_matches = []
+            successful_collections = 0
             
             # Process each match (limit to first 10 for safety)
-            for idx, match_elem in enumerate(match_elements[:10]):
+            for idx in range(min(10, len(match_elements))):
                 try:
-                    # Get team names before clicking
+                    # Reload the main page to get fresh DOM elements
+                    if idx > 0:
+                        logger.info(f"Reloading main page for match {idx+1}...")
+                        page.goto(ESPORTESDASORTE_URL, timeout=30000, wait_until="domcontentloaded")
+                        page.wait_for_selector("div.element.flex-item.match", timeout=15000)
+                        page.wait_for_timeout(2000)
+                    
+                    # Re-query match elements with fresh DOM
+                    match_elements = page.query_selector_all("div.element.flex-item.match")
+                    
+                    if idx >= len(match_elements):
+                        logger.warning(f"Match {idx+1} not found after reload, stopping")
+                        break
+                    
+                    match_elem = match_elements[idx]
+                    
+                    # Get team names
                     team_links = match_elem.query_selector_all("a.team-name")
                     
                     if len(team_links) < 2:
@@ -100,7 +117,7 @@ def collect():
                     team1 = team1_text.inner_text().strip()
                     team2 = team2_text.inner_text().strip()
                     
-                    logger.info(f"Processing match {idx+1}: {team1} vs {team2}")
+                    logger.info(f"Processing match {idx+1}/{min(10, len(match_elements))}: {team1} vs {team2}")
                     
                     # Store current URL to detect navigation
                     current_url = page.url
@@ -125,10 +142,9 @@ def collect():
                     # Wait for bet buttons to appear
                     try:
                         page.wait_for_selector("div.flex-container.bet-type-btn-group", timeout=10000)
+                        page.wait_for_timeout(1000)
                     except:
                         logger.warning(f"No bet groups found for {team1} vs {team2}")
-                        page.go_back()
-                        page.wait_for_timeout(2000)
                         continue
                     
                     # Get the HTML content of the match page
@@ -139,38 +155,16 @@ def collect():
                     
                     if matches:
                         all_matches.extend(matches)
-                        logger.info(f"Successfully extracted double chance odds for {team1} vs {team2}")
+                        successful_collections += 1
+                        logger.info(f"✓ Successfully extracted double chance odds for {team1} vs {team2} ({successful_collections} collected)")
                     else:
                         logger.warning(f"No double chance odds found for {team1} vs {team2}")
                     
-                    # Go back to the main page
-                    logger.info("Navigating back to main page...")
-                    page.go_back(wait_until="domcontentloaded")
-                    
-                    # Wait for matches to reload
-                    page.wait_for_selector("div.element.flex-item.match", timeout=10000)
-                    page.wait_for_timeout(2000)
-                    
-                    # Re-query match elements as DOM has changed
-                    match_elements = page.query_selector_all("div.element.flex-item.match")
-                    logger.info(f"Reloaded page, found {len(match_elements)} matches")
-                    
                 except Exception as e:
                     logger.error(f"Error processing match {idx+1}: {str(e)}")
-                    # Try to go back to main page
-                    try:
-                        logger.info("Attempting to recover by going back...")
-                        page.go_back(wait_until="domcontentloaded", timeout=5000)
-                        page.wait_for_timeout(2000)
-                    except:
-                        logger.error("Failed to go back, reloading main page...")
-                        page.goto(ESPORTESDASORTE_URL, timeout=30000)
-                        page.wait_for_selector("div.element.flex-item.match", timeout=10000)
-                        page.wait_for_timeout(2000)
-                        match_elements = page.query_selector_all("div.element.flex-item.match")
                     continue
             
-            logger.info(f"Total matches collected: {len(all_matches)}")
+            logger.info(f"Total matches collected: {len(all_matches)} (attempted {min(10, len(match_elements))})")
             return all_matches
 
         except TimeoutError as e:
