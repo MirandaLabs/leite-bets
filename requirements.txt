@@ -1,0 +1,6 @@
+playwright==1.57.0
+beautifulsoup4
+lxml
+requests
+fastapi
+uvicorn[standard]

@@ -1,0 +1,6 @@
+MATCH_CONTAINER = "div.vue-recycle-scroller__item-view"
+EVENT_ROW = "div.tw-flex.tw-w-full.tw-flex-row.tw-items-start"
+EVENT_NAME = "div.tw-truncate.tw-text-s.tw-font-medium"
+ODDS_SELECTION = "div[data-qa='event-selection']"
+SELECTION_NAME = "span.s-name"
+ODDS_VALUE = "span.tw-text-sem-color-text-highlight"

@@ -125,3 +125,115 @@ MIT
 ## 👥 Autores
 
 MirandaLabs
+# Leite Bets - Web Scraper
+
+Sistema automatizado de coleta de odds de casas de apostas utilizando Python, Playwright e n8n.
+
+## 📋 Estrutura do Projeto
+
+```
+leite-bets/
+├── scrapers/
+│   ├── base/
+│   │   └── browser.py          # Configuração do Playwright
+│   └── bet365/
+│       ├── collector.py        # Acessa site e salva HTML
+│       ├── parser.py           # Extrai jogos + odds
+│       └── schema.py           # Normalização de dados
+├── storage/
+│   └── html/
+│       └── bet365/             # HTMLs salvos
+├── workflows/
+│   └── run_bet365.py           # Entrypoint para n8n
+├── n8n/
+│   ├── data/                   # Dados do n8n (auto-criado)
+│   └── workflows/
+│       └── bet365_scraper.json # Workflow pré-configurado
+├── docker-compose.yml
+├── Dockerfile
+├── requirements.txt
+└── README.md
+```
+
+## 🚀 Começando
+
+### Pré-requisitos
+
+- Docker
+- Docker Compose
+
+### Instalação
+
+1. Clone o repositório:
+```bash
+git clone https://github.com/MirandaLabs/leite-bets.git
+cd leite-bets
+```
+
+2. Construa e inicie os containers:
+```bash
+docker-compose up -d --build
+```
+
+3. Acesse o n8n:
+```
+URL: http://localhost:5678
+User: admin
+Password: admin123
+```
+
+### Configuração do Workflow
+
+1. No n8n, vá em **Workflows** > **Import from File**
+2. Selecione o arquivo `n8n/workflows/bet365_scraper.json`
+3. Ative o workflow
+
+O workflow executará:
+- **Schedule**: A cada hora entre 10h-21h
+- **Random Delay**: Aguarda 8-25 minutos aleatórios
+- **Execute Scraper**: Roda o script Python
+
+## 🛠️ Tecnologias
+
+- **Python 3** - Linguagem principal
+- **Playwright** - Automação do navegador
+- **BeautifulSoup4** - Parse de HTML
+- **n8n** - Orquestração de workflows
+- **Docker** - Containerização
+
+## 📊 Uso Manual
+
+Para executar manualmente:
+
+```bash
+# Entrar no container
+docker exec -it leite-bets-n8n sh
+
+# Rodar o scraper
+python3 /workspace/workflows/run_bet365.py
+```
+
+## 🔧 Desenvolvimento
+
+### Instalar dependências localmente
+
+```bash
+pip install -r requirements.txt
+playwright install chromium
+```
+
+### Estrutura dos Scrapers
+
+Cada site tem 3 componentes:
+
+1. **collector.py** - Navega e coleta HTML
+2. **parser.py** - Extrai dados estruturados
+3. **schema.py** - Valida e normaliza
+
+## 📝 Licença
+
+MIT
+
+## 👥 Autores
+
+Miranda Labs
