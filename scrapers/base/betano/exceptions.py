@@ -1,0 +1,2 @@
+class BetanoScraperError(Exception):
+    pass
