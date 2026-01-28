@@ -40,9 +40,5 @@ services:
 
 volumes:
   postgres_data:
-
-volumes:
-  n8n_data:version: '3.8'
-
-
+  n8n_data:
   
