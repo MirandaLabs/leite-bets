@@ -102,15 +102,25 @@ def collect():
                     
                     logger.info(f"Processing match {idx+1}: {team1} vs {team2}")
                     
-                    # Click on the match element using JavaScript to bypass overlay issues
+                    # Store current URL to detect navigation
+                    current_url = page.url
+                    
+                    # Click on the first team link (more reliable than clicking on container)
                     try:
-                        page.evaluate("(element) => element.click()", match_elem)
+                        team_links[0].click(timeout=5000)
+                    except Exception as click_error:
+                        logger.warning(f"Failed to click team link: {click_error}, trying JavaScript click")
+                        page.evaluate("(element) => element.click()", team_links[0])
+                    
+                    # Wait for URL to change or content to load
+                    try:
+                        page.wait_for_url(lambda url: url != current_url, timeout=5000)
                     except:
-                        # Fallback to regular click
-                        match_elem.click()
+                        # URL didn't change, wait for bet groups anyway
+                        pass
                     
                     # Wait for the match page to load
-                    page.wait_for_timeout(3000)
+                    page.wait_for_timeout(2000)
                     
                     # Wait for bet buttons to appear
                     try:
@@ -134,21 +144,30 @@ def collect():
                         logger.warning(f"No double chance odds found for {team1} vs {team2}")
                     
                     # Go back to the main page
-                    page.go_back()
+                    logger.info("Navigating back to main page...")
+                    page.go_back(wait_until="domcontentloaded")
+                    
+                    # Wait for matches to reload
                     page.wait_for_selector("div.element.flex-item.match", timeout=10000)
                     page.wait_for_timeout(2000)
                     
-                    # Re-query match elements as DOM might have changed
+                    # Re-query match elements as DOM has changed
                     match_elements = page.query_selector_all("div.element.flex-item.match")
+                    logger.info(f"Reloaded page, found {len(match_elements)} matches")
                     
                 except Exception as e:
                     logger.error(f"Error processing match {idx+1}: {str(e)}")
                     # Try to go back to main page
                     try:
-                        page.go_back()
+                        logger.info("Attempting to recover by going back...")
+                        page.go_back(wait_until="domcontentloaded", timeout=5000)
                         page.wait_for_timeout(2000)
                     except:
-                        pass
+                        logger.error("Failed to go back, reloading main page...")
+                        page.goto(ESPORTESDASORTE_URL, timeout=30000)
+                        page.wait_for_selector("div.element.flex-item.match", timeout=10000)
+                        page.wait_for_timeout(2000)
+                        match_elements = page.query_selector_all("div.element.flex-item.match")
                     continue
             
             logger.info(f"Total matches collected: {len(all_matches)}")
