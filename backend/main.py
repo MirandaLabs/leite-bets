@@ -265,5 +265,37 @@ def receive_scraper_odds(payload: ScraperPayload, db: Session = Depends(get_db))
         "errors": errors if errors else None
     }
 
+@app.get("/api/events")
+def get_events(db: Session = Depends(get_db)):
+    """
+    Retorna todos os eventos disponíveis com suas odds
+    """
+    events = db.query(Event).filter(Event.status == "upcoming").all()
+    
+    result = []
+    for event in events:
+        odds = db.query(Odd).filter(Odd.event_id == event.id).all()
+        
+        odds_by_bookmaker = {}
+        for odd in odds:
+            odds_by_bookmaker[odd.bookmaker] = {
+                "homeOdd": float(odd.home_odd) if odd.home_odd else None,
+                "drawOdd": float(odd.draw_odd) if odd.draw_odd else None,
+                "awayOdd": float(odd.away_odd) if odd.away_odd else None,
+                "homeOrDrawOdd": float(odd.home_or_draw_odd) if odd.home_or_draw_odd else None,
+                "awayOrDrawOdd": float(odd.away_or_draw_odd) if odd.away_or_draw_odd else None
+            }
+        
+        result.append({
+            "eventId": event.id,
+            "homeTeam": event.home_team,
+            "awayTeam": event.away_team,
+            "league": event.league,
+            "eventDate": event.event_date.isoformat(),
+            "odds": odds_by_bookmaker
+        })
+    
+    return {"events": result}
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
