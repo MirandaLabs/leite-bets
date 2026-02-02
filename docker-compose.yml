@@ -71,15 +71,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    command: >
-      sh -c "
-      echo 'Aguardando PostgreSQL...' &&
-      sleep 5 &&
-      echo 'Criando tabelas...' &&
-      python -c 'from models import Base, engine; Base.metadata.create_all(engine)' &&
-      echo 'Iniciando API...' &&
-      uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-      "
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - ./backend:/app
     restart: unless-stopped
@@ -97,6 +89,7 @@ services:
       TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
     depends_on:
       - api
+    entrypoint: ["./entrypoint-bot.sh"]
     command: python telegram_bot_auto.py
     volumes:
       - ./backend:/app

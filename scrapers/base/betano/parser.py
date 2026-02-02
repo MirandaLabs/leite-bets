@@ -87,7 +87,7 @@ def parse_matchresult(html: str) -> list:
                     id=f"betano_{event_name}".replace(" ", "_").lower(),
                     name=event_name,
                     start_time=None,
-                    is_live=False
+                    status="upcoming"
                 ),
                 market=Market(
                     type="Double Chance",

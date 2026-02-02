@@ -71,14 +71,18 @@ def encontrar_melhor_odd_double_chance(
         Dict com a melhor odd Double Chance encontrada ou None
     """
     # Busca o evento
-    event = db.query(Event).filter(Event.id == event_id).first()
+    event = db.query(Event).filter(
+        Event.id == event_id,
+        Event.status.in_(["upcoming", "live"])  # Apenas eventos ativos
+    ).first()
     if not event:
         return None
     
-    # Busca todas as odds desse evento (exceto a casa do usuário)
+    # Busca todas as odds ativas desse evento
     odds = db.query(Odd).filter(
         Odd.event_id == event_id,
-        Odd.bookmaker != bookmaker_usuario
+        Odd.bookmaker != bookmaker_usuario,
+        Odd.is_active == True  # Apenas odds ativas
     ).all()
     
     if not odds:

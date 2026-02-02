@@ -211,7 +211,7 @@ def parse_matchresult(html: str, team1: str, team2: str) -> list:
                         id=f"superbet_{event_name}".replace(" ", "_").lower(),
                         name=event_name,
                         start_time=None,
-                        is_live=False
+                        status="upcoming"
                     ),
                     market=Market(
                         type="Double Chance",

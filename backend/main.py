@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 import uvicorn
 import uuid
 
@@ -112,7 +112,7 @@ class ScraperEvent(BaseModel):
     id: str
     name: str
     start_time: Optional[str] = None
-    is_live: bool
+    status: str = "upcoming"
 
 class ScraperOddsData(BaseModel):
     source: str
@@ -158,6 +158,10 @@ def receive_scraper_odds(payload: ScraperPayload, db: Session = Depends(get_db))
             if not event:
                 # Cria o evento
                 event_date = datetime.fromisoformat(odds_data.event.start_time.replace('Z', '+00:00')) if odds_data.event.start_time else datetime.utcnow()
+                
+                # Determina o status baseado no horário
+                status = odds_data.event.status if odds_data.event.status else "upcoming"
+                
                 event = Event(
                     id=event_id,
                     sport="Futebol",
@@ -165,7 +169,7 @@ def receive_scraper_odds(payload: ScraperPayload, db: Session = Depends(get_db))
                     home_team=home_team,
                     away_team=away_team,
                     event_date=event_date,
-                    status="live" if odds_data.event.is_live else "upcoming"
+                    status=status
                 )
                 db.add(event)
                 db.commit()
@@ -269,8 +273,11 @@ def receive_scraper_odds(payload: ScraperPayload, db: Session = Depends(get_db))
 def get_events(db: Session = Depends(get_db)):
     """
     Retorna todos os eventos disponíveis com suas odds
+    Filtra apenas eventos que não estão finalizados
     """
-    events = db.query(Event).filter(Event.status == "upcoming").all()
+    events = db.query(Event).filter(
+        Event.status.in_(["upcoming", "live"])
+    ).all()
     
     result = []
     for event in events:
@@ -296,6 +303,95 @@ def get_events(db: Session = Depends(get_db)):
         })
     
     return {"events": result}
+
+# Duração média de um jogo de futebol (em minutos)
+MATCH_DURATION = 120
+
+@app.post("/api/events/update-status")
+def update_event_statuses(db: Session = Depends(get_db)):
+    """
+    Atualiza o status de todos os eventos baseado no horário atual
+    """
+    try:
+        now = datetime.utcnow()
+        updated_count = 0
+        finished_count = 0
+        
+        # Busca todos os eventos que não estão finalizados
+        events = db.query(Event).filter(
+            Event.status.in_(["upcoming", "live"])
+        ).all()
+        
+        for event in events:
+            old_status = event.status
+            
+            # Determina o novo status
+            if now < event.event_date:
+                new_status = "upcoming"
+            elif (now - event.event_date) > timedelta(minutes=MATCH_DURATION):
+                new_status = "finished"
+            else:
+                new_status = "live"
+            
+            if old_status != new_status:
+                event.status = new_status
+                
+                # Se o evento foi finalizado, marca o horário e desativa as odds
+                if new_status == "finished":
+                    event.finished_at = now
+                    
+                    # Desativa todas as odds deste evento
+                    db.query(Odd).filter(
+                        Odd.event_id == event.id
+                    ).update({"is_active": False})
+                    
+                    finished_count += 1
+                
+                updated_count += 1
+        
+        db.commit()
+        
+        return {
+            "success": True,
+            "updated": updated_count,
+            "finished": finished_count,
+            "timestamp": now.isoformat()
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao atualizar status: {str(e)}")
+
+@app.delete("/api/events/cleanup")
+def cleanup_finished_events(days_old: int = 7, db: Session = Depends(get_db)):
+    """
+    Remove eventos finalizados há mais de X dias
+    """
+    try:
+        cutoff_date = datetime.utcnow() - timedelta(days=days_old)
+        
+        # Busca eventos finalizados há mais de X dias
+        old_events = db.query(Event).filter(
+            Event.status == "finished",
+            Event.finished_at < cutoff_date
+        ).all()
+        
+        deleted_count = len(old_events)
+        
+        for event in old_events:
+            db.delete(event)
+        
+        db.commit()
+        
+        return {
+            "success": True,
+            "deleted": deleted_count,
+            "cutoff_date": cutoff_date.isoformat()
+        }
+        
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Erro ao limpar eventos: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

@@ -1,3 +1,9 @@
+-- Criar database
+CREATE DATABASE leite_bets;
+
+-- Enum para status de eventos
+CREATE TYPE event_status AS ENUM ('upcoming', 'live', 'finished');
+
 -- Tabela de eventos (jogos)
 CREATE TABLE IF NOT EXISTS events (
     id VARCHAR(50) PRIMARY KEY,
@@ -7,7 +13,8 @@ CREATE TABLE IF NOT EXISTS events (
     away_team VARCHAR(100) NOT NULL,
     event_date TIMESTAMP NOT NULL,
     status VARCHAR(20) DEFAULT 'upcoming',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    finished_at TIMESTAMP
 );
 
 -- Tabela de odds
@@ -19,7 +26,8 @@ CREATE TABLE IF NOT EXISTS odds (
     home_odd DECIMAL(10, 2),
     draw_odd DECIMAL(10, 2),
     away_odd DECIMAL(10, 2),
-    scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    scraped_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE
 );
 
 CREATE INDEX idx_odds_event_bookmaker ON odds(event_id, bookmaker);

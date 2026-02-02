@@ -25,6 +25,7 @@ class Event(Base):
     event_date = Column(TIMESTAMP, nullable=False)
     status = Column(String(20), default="upcoming")
     created_at = Column(TIMESTAMP, default=datetime.utcnow)
+    finished_at = Column(TIMESTAMP)
     
     odds = relationship("Odd", back_populates="event", cascade="all, delete-orphan")
 
@@ -41,6 +42,7 @@ class Odd(Base):
     home_or_draw_odd = Column(DECIMAL(10, 2))  
     away_or_draw_odd = Column(DECIMAL(10, 2)) 
     scraped_at = Column(TIMESTAMP, default=datetime.utcnow)
+    is_active = Column(Boolean, default=True)
     
     event = relationship("Event", back_populates="odds")
 

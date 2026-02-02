@@ -1,6 +1,13 @@
 from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
+from enum import Enum
+
+
+class EventStatus(str, Enum):
+    UPCOMING = "upcoming"
+    LIVE = "live"
+    FINISHED = "finished"
 
 
 class Selection(BaseModel):
@@ -19,7 +26,7 @@ class Event(BaseModel):
     id: str
     name: str
     start_time: Optional[datetime]
-    is_live: bool
+    status: EventStatus = EventStatus.UPCOMING
 
 
 class Odds(BaseModel):
