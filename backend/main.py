@@ -393,5 +393,154 @@ def cleanup_finished_events(days_old: int = 7, db: Session = Depends(get_db)):
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Erro ao limpar eventos: {str(e)}")
 
+@app.post("/api/trigger/all")
+def trigger_all_scrapers():
+    """
+    Endpoint para N8N: Triggera todos os scrapers de uma vez.
+    Retorna resultado consolidado.
+    """
+    from datetime import datetime
+    
+    results = {
+        "triggered_at": datetime.utcnow().isoformat(),
+        "scrapers": {}
+    }
+    
+    # Lista de scrapers disponíveis
+    scrapers = {
+        "betano": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/betano",
+        "bet365": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/bet365",
+        "superbet": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/superbet",
+        "esportesdasorte": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/esportesdasorte"
+    }
+    
+    import requests
+    
+    for name, url in scrapers.items():
+        try:
+            response = requests.post(url, timeout=60)
+            results["scrapers"][name] = {
+                "status": "success",
+                "status_code": response.status_code,
+                "items": response.json().get("items", 0)
+            }
+        except Exception as e:
+            results["scrapers"][name] = {
+                "status": "error",
+                "error": str(e)
+            }
+    
+    return results
+
+
+@app.post("/api/trigger/{casa}")
+def trigger_scraper_casa(casa: str):
+    """
+    Endpoint para N8N: Triggera scraper específico.
+    Casas disponíveis: betano, bet365, superbet, esportesdasorte
+    """
+    from datetime import datetime
+    import requests
+    
+    scrapers = {
+        "betano": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/betano",
+        "bet365": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/bet365",
+        "superbet": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/superbet",
+        "esportesdasorte": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/esportesdasorte"
+    }
+    
+    if casa not in scrapers:
+        return {
+            "error": f"Casa '{casa}' não encontrada",
+            "available": list(scrapers.keys())
+        }
+    
+    try:
+        response = requests.post(scrapers[casa], timeout=60)
+        return {
+            "triggered_at": datetime.utcnow().isoformat(),
+            "casa": casa,
+            "status": "success",
+            "data": response.json()
+        }
+    except Exception as e:
+        return {
+            "triggered_at": datetime.utcnow().isoformat(),
+            "casa": casa,
+            "status": "error",
+            "error": str(e)
+        }
+
+
+@app.get("/api/scraper/status")
+def scraper_status():
+    """
+    Endpoint para N8N: Verifica status dos scrapers e sistema.
+    """
+    from datetime import datetime
+    
+    # Verifica banco de dados
+    try:
+        db = SessionLocal()
+        event_count = db.query(Event).count()
+        odd_count = db.query(Odd).count()
+        upcoming_events = db.query(Event).filter(Event.status == "upcoming").count()
+        db.close()
+        db_status = "connected"
+    except Exception as e:
+        db_status = f"error: {str(e)}"
+        event_count = 0
+        odd_count = 0
+        upcoming_events = 0
+    
+    return {
+        "status": "ok",
+        "timestamp": datetime.utcnow().isoformat(),
+        "database": {
+            "status": db_status,
+            "events": event_count,
+            "odds": odd_count,
+            "upcoming_events": upcoming_events
+        },
+        "scrapers": {
+            "available": ["betano", "bet365", "superbet", "esportesdasorte"],
+            "trigger_endpoint": "/api/trigger/all"
+        }
+    }
+
+
+@app.post("/api/webhook/n8n")
+def webhook_n8n(payload: dict = None):
+    """
+    Webhook genérico para N8N.
+    N8N pode enviar qualquer payload e este endpoint processa.
+    """
+    from datetime import datetime
+    
+    action = payload.get("action") if payload else None
+    
+    if action == "scrape_all":
+        # Triggera todos os scrapers
+        return trigger_all_scrapers()
+    
+    elif action == "scrape_casa":
+        # Triggera scraper específico
+        casa = payload.get("casa")
+        if not casa:
+            return {"error": "Campo 'casa' obrigatório quando action='scrape_casa'"}
+        return trigger_scraper_casa(casa)
+    
+    elif action == "status":
+        # Retorna status
+        return scraper_status()
+    
+    else:
+        return {
+            "received_at": datetime.utcnow().isoformat(),
+            "payload": payload,
+            "available_actions": ["scrape_all", "scrape_casa", "status"],
+            "message": "Webhook recebido! Use 'action' para especificar o que fazer."
+        }
+
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

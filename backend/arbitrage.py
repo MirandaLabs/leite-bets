@@ -1,7 +1,7 @@
 from typing import Dict, Optional, List
 from sqlalchemy.orm import Session
 from models import Event, Odd
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def calcular_hedge(
     aposta_usuario: float,
@@ -71,18 +71,14 @@ def encontrar_melhor_odd_double_chance(
         Dict com a melhor odd Double Chance encontrada ou None
     """
     # Busca o evento
-    event = db.query(Event).filter(
-        Event.id == event_id,
-        Event.status.in_(["upcoming", "live"])  # Apenas eventos ativos
-    ).first()
+    event = db.query(Event).filter(Event.id == event_id).first()
     if not event:
         return None
     
-    # Busca todas as odds ativas desse evento
+    # Busca todas as odds desse evento (exceto a casa do usuário)
     odds = db.query(Odd).filter(
         Odd.event_id == event_id,
-        Odd.bookmaker != bookmaker_usuario,
-        Odd.is_active == True  # Apenas odds ativas
+        Odd.bookmaker != bookmaker_usuario
     ).all()
     
     if not odds:
@@ -205,6 +201,7 @@ def buscar_oportunidades_automaticas(
 ) -> List[Dict]:
     """
     Busca oportunidades de arbitragem automaticamente usando Double Chance.
+    Filtra apenas eventos ativos (upcoming ou live) e recentes.
     
     Args:
         db: Sessão do banco
@@ -216,8 +213,14 @@ def buscar_oportunidades_automaticas(
     """
     oportunidades = []
     
-    # Busca todos os eventos upcoming
-    events = db.query(Event).filter(Event.status == "upcoming").all()
+    # NOVO: Busca eventos upcoming OU live que ainda não expiraram
+    now = datetime.utcnow()
+    cutoff_time = now - timedelta(hours=3)  # Ignora jogos de mais de 3h atrás
+    
+    events = db.query(Event).filter(
+        Event.status.in_(["upcoming", "live"]),
+        Event.event_date > cutoff_time
+    ).all()
     
     for event in events:
         # Busca todas as odds desse evento
@@ -314,3 +317,21 @@ def buscar_oportunidades_automaticas(
     oportunidades.sort(key=lambda x: x["profit_percent"], reverse=True)
     
     return oportunidades
+
+
+def limpar_eventos_antigos(db: Session):
+    """
+    Marca eventos antigos como 'finished' para não processar mais.
+    Eventos são considerados antigos se passaram mais de 3h do horário do jogo.
+    """
+    cutoff_time = datetime.utcnow() - timedelta(hours=3)
+    
+    # Atualiza status para finished
+    updated = db.query(Event).filter(
+        Event.event_date < cutoff_time,
+        Event.status != "finished"
+    ).update({"status": "finished"})
+    
+    if updated > 0:
+        db.commit()
+        print(f"✅ Marcados {updated} evento(s) como finalizados")
