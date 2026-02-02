@@ -1,0 +1,440 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1904,
+        48
+      ],
+      "id": "92a72e8d-51b4-40cb-bc15-66b65f108756",
+      "name": "Telegram Trigger",
+      "webhookId": "6c024d23-b98c-4a13-b8df-cdab775967c0",
+      "credentials": {
+        "telegramApi": {
+          "id": "66q8PspWN577XQ93",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot8396571774:AAFRYxJ6XVeOBXfqQt6rlSYHtiRP_1wDKo0/sendMessage?chat_id={{ $node[\"Telegram Trigger\"].json.message.chat.id }}&text={{ encodeURIComponent(\"👋 Olá, \" + ($node[\"Telegram Trigger\"].json.message.from.first_name || \"usuário\") + \"!\\n\\nBem-vindo ao seu Comparador de Odds. Aqui você encontra as melhores cotações em tempo real.\\n\\nClique no botão abaixo para começar:\") }}&parse_mode=Markdown&reply_markup={{ encodeURIComponent(JSON.stringify({ inline_keyboard: [[{ text: \"🚀 Ver Campeonatos\", callback_data: \"btn_1\" }]] })) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1328,
+        -528
+      ],
+      "id": "f6789c6e-5ae2-47e0-832b-a84ddafd05a8",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message?.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "ccd07dfa-a164-4e64-926a-678a513fb0fa"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "4f420167-e9e3-47b2-999c-19efc5ceeb8a",
+                    "leftValue": "={{ $json.callback_query?.data }}",
+                    "rightValue": "btn_",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "4a8eec57-0893-4e2f-8c2a-aa3b3fc5260d",
+                    "leftValue": "={{ $node[\"Telegram Trigger\"].json.callback_query.data }}",
+                    "rightValue": "league_",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a2d11a2c-9e08-415e-a4e1-d7d4f7cd715a",
+                    "leftValue": "={{ $node[\"Telegram Trigger\"].json.callback_query.data }}",
+                    "rightValue": "game_",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "593d29e4-fd8e-47a0-9288-800584cf778b",
+                    "leftValue": "={{ $node[\"Telegram Trigger\"].json.callback_query.data }}",
+                    "rightValue": "fechar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -1664,
+        0
+      ],
+      "id": "ccf8f5d0-7fc7-49fa-808f-5b09c65651e2",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pega a lista de eventos da sua API\nconst eventos = $input.first().json.events || [];\nconst ligasUnicas = new Set();\nconst botoes = [];\n\neventos.forEach(evento => {\n    // Garante que não vamos repetir botões para a mesma liga\n    if (evento.league && !ligasUnicas.has(evento.league)) {\n        ligasUnicas.add(evento.league);\n        botoes.push([{\n            text: `⚽ ${evento.league}`,\n            callback_data: `league_${evento.league}`\n        }]);\n    }\n});\n\nreturn { json: { reply_markup: { inline_keyboard: botoes } } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        -304
+      ],
+      "id": "b62b511f-2c3b-4ca5-84ad-8fbdbce9978f",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot8396571774:AAFRYxJ6XVeOBXfqQt6rlSYHtiRP_1wDKo0/sendMessage?chat_id={{ $node[\"Telegram Trigger\"].json.callback_query.message.chat.id }}&text={{ encodeURIComponent(\"Selecione um campeonato para ver as Odds:\") }}&reply_markup={{ encodeURIComponent(JSON.stringify($json.reply_markup)) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -672,
+        -304
+      ],
+      "id": "48f5d7ec-6578-4a14-8417-9a1d49faf720",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "url": "https://marian-precocious-defyingly.ngrok-free.dev/api/events",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1328,
+        -304
+      ],
+      "id": "8e23bb28-1ccc-4fce-b8ed-df7c00f1fd24",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "url": "https://marian-precocious-defyingly.ngrok-free.dev/api/events",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1328,
+        48
+      ],
+      "id": "d86453c8-8ef8-49cb-bd47-87ae28215d83",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Captura a liga clicada\nconst clique = $node[\"Telegram Trigger\"].json.callback_query.data;\nconst ligaAlvo = clique.replace('league_', '');\n\nconst eventos = $input.first().json.events || [];\nconst idsProcessados = new Set(); // Conjunto para evitar duplicatas\nconst botoes = [];\n\neventos.forEach(jogo => {\n    // Só entra se for a liga certa E se ainda não processamos este ID de evento\n    if (jogo.league === ligaAlvo && !idsProcessados.has(jogo.eventId)) {\n        idsProcessados.add(jogo.eventId); // Marca o ID como processado\n        \n        botoes.push([{\n            text: `🏟️ ${jogo.homeTeam} x ${jogo.awayTeam}`,\n            callback_data: `game_${jogo.eventId}` // Envia para a Saída 3\n        }]);\n    }\n});\n\nreturn { json: { reply_markup: { inline_keyboard: botoes }, liga: ligaAlvo } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        48
+      ],
+      "id": "b182c670-8e42-48ce-ab20-2effd950a90e",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot8396571774:AAFRYxJ6XVeOBXfqQt6rlSYHtiRP_1wDKo0/sendMessage?chat_id={{ $node[\"Telegram Trigger\"].json.callback_query.message.chat.id }}&text={{ encodeURIComponent(\"Jogos disponíveis em \" + $json.liga + \":\") }}&reply_markup={{ encodeURIComponent(JSON.stringify($json.reply_markup)) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -736,
+        48
+      ],
+      "id": "910970db-2465-41d5-81ce-8d5d1e78d9d5",
+      "name": "HTTP Request4"
+    },
+    {
+      "parameters": {
+        "url": "https://marian-precocious-defyingly.ngrok-free.dev/api/events",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1328,
+        480
+      ],
+      "id": "7386df9b-9ece-4521-bb12-5e606682297e",
+      "name": "HTTP Request5"
+    },
+    {
+      "parameters": {
+        "jsCode": "const clique = $node[\"Telegram Trigger\"].json.callback_query.data;\nconst idDoJogo = clique.replace('game_', '');\nconst eventos = $input.first().json.events || [];\n\n// Filtra o jogo pelo ID\nconst jogoEncontrado = eventos.find(e => String(e.eventId) === String(idDoJogo));\n\nif (!jogoEncontrado || !jogoEncontrado.odds) {\n    return { json: { texto: \"⚠️ Nenhuma Odd disponível para este jogo no momento.\" } };\n}\n\nlet textoOdds = `📊 *ODDS: ${jogoEncontrado.homeTeam} x ${jogoEncontrado.awayTeam}*\\n`;\ntextoOdds += `🏆 Liga: ${jogoEncontrado.league}\\n\\n`;\n\n// Percorre o objeto 'odds' onde cada chave é o nome da banca (Bet365, Betano, etc)\nconst bancas = Object.keys(jogoEncontrado.odds);\n\nbancas.forEach(banca => {\n    const cotacao = jogoEncontrado.odds[banca];\n    \n    textoOdds += `📍 *${banca}*\\n`;\n    textoOdds += `  • Casa: ${cotacao.homeOdd || '---'}\\n`;\n    textoOdds += `  • Empate: ${cotacao.drawOdd || '---'}\\n`;\n    textoOdds += `  • Fora: ${cotacao.awayOdd || '---'}\\n`;\n    // Adicionais se você quiser mostrar:\n    textoOdds += `  • 1X: ${cotacao.homeOrDrawOdd || '---'} | X2: ${cotacao.awayOrDrawOdd || '---'}\\n\\n`;\n});\n\ntextoOdds += `_🕒 Atualizado: ${new Date().toLocaleTimeString('pt-BR')}_`;\n\nreturn { \n    json: { \n        texto: textoOdds, \n        liga: jogoEncontrado.league // <--- Adicionamos essa linha para o nó de envio saber qual era a liga\n    } \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -1024,
+        480
+      ],
+      "id": "bd131cf8-c6ef-4141-98ea-ca949f021cf3",
+      "name": "Code in JavaScript2"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot8396571774:AAFRYxJ6XVeOBXfqQt6rlSYHtiRP_1wDKo0/editMessageText?chat_id={{$node[\"Telegram Trigger\"].json.callback_query.message.chat.id}}&message_id={{$node[\"Telegram Trigger\"].json.callback_query.message.message_id}}&text={{encodeURIComponent($json.texto)}}&parse_mode=Markdown&reply_markup={{encodeURIComponent(JSON.stringify({ inline_keyboard: [[{ text: \"⬅️ Voltar para \" + $json.liga, callback_data: \"league_\" + $json.liga }], [{ text: \"🏠 Início\", callback_data: \"btn_1\" }, { text: \"❌ Fechar\", callback_data: \"fechar\" }]] }))}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -720,
+        480
+      ],
+      "id": "d65084ec-0138-4ae5-aad2-e3aca8dc8601",
+      "name": "HTTP Request6"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot8396571774:AAFRYxJ6XVeOBXfqQt6rlSYHtiRP_1wDKo0/editMessageText?chat_id={{$node[\"Telegram Trigger\"].json.callback_query.message.chat.id}}&message_id={{$node[\"Telegram Trigger\"].json.callback_query.message.message_id}}&text={{encodeURIComponent(\"Consulta finalizada. Quando precisar de novas odds, é só chamar! 👋\")}}&reply_markup={{encodeURIComponent(JSON.stringify({inline_keyboard: []}))}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -1328,
+        688
+      ],
+      "id": "7db997bb-3d8c-46cb-9911-03c8cc11e49e",
+      "name": "HTTP Request7"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request5",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request5": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript2": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "2060eae8-2b7d-44d3-a539-9e0d2e1c662a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "674b78426f4795e963b13b18cb32a7ce8e3eaebf6652f8c697ce5d6f3c424ae6"
+  },
+  "id": "y8Hea-zI84O_11iOnYlaR",
+  "tags": []
+}

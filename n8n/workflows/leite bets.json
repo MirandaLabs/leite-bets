@@ -1,0 +1,636 @@
+{
+  "name": "leite bets",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10-21 * * *"
+            }
+          ]
+        }
+      },
+      "id": "c4e7c5ff-9e3e-439a-a4cb-41e50d83656a",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1312,
+        -1568
+      ]
+    },
+    {
+      "parameters": {
+        "amount": "=2\n",
+        "unit": "seconds"
+      },
+      "id": "4286ef68-96a2-4397-b90c-47a65bd2cd7e",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        -1056,
+        -1568
+      ],
+      "webhookId": "wait-webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://scraper:8000/scrape/bet365",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -720,
+        -1744
+      ],
+      "id": "73f33f65-6f17-495c-a87e-277853f987f1",
+      "name": "HTTP Request Bet365"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://scraper:8000/scrape/betano",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -720,
+        -1584
+      ],
+      "id": "81399361-eb98-433a-bf06-efc4ee4d8b2d",
+      "name": "HTTP Request Betano"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://scraper:8000/scrape/superbet",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 30000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -720,
+        -1424
+      ],
+      "id": "8e84a2a7-61df-4492-a8b7-a4d6f47123ae",
+      "name": "HTTP Request Superbet"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -1008,
+        -480
+      ],
+      "id": "655ff793-72ba-452c-b24c-75f0c4ee13bc",
+      "name": "Telegram Trigger",
+      "webhookId": "6c024d23-b98c-4a13-b8df-cdab775967c0"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message?.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "ccd07dfa-a164-4e64-926a-678a513fb0fa"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "4f420167-e9e3-47b2-999c-19efc5ceeb8a",
+                    "leftValue": "={{ $json.callback_query?.data }}",
+                    "rightValue": "btn_",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "4a8eec57-0893-4e2f-8c2a-aa3b3fc5260d",
+                    "leftValue": "={{ $node[\"Telegram Trigger\"].json.callback_query.data }}",
+                    "rightValue": "league_",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "a2d11a2c-9e08-415e-a4e1-d7d4f7cd715a",
+                    "leftValue": "={{ $node[\"Telegram Trigger\"].json.callback_query.data }}",
+                    "rightValue": "game_",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "593d29e4-fd8e-47a0-9288-800584cf778b",
+                    "leftValue": "={{ $node[\"Telegram Trigger\"].json.callback_query.data }}",
+                    "rightValue": "fechar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -768,
+        -528
+      ],
+      "id": "b21b531b-8fb3-48a0-8678-f07e9234954d",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot8545930560:AAHAz7OjzpA6tqMcEb1bQfQkQoblmzzkrOg/editMessageText?chat_id={{$node[\"Telegram Trigger\"].json.callback_query.message.chat.id}}&message_id={{$node[\"Telegram Trigger\"].json.callback_query.message.message_id}}&text={{encodeURIComponent(\"Consulta finalizada. Quando precisar de novas odds, é só chamar! 👋\")}}&reply_markup={{encodeURIComponent(JSON.stringify({inline_keyboard: []}))}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -416,
+        176
+      ],
+      "id": "1d67c13a-2d54-4984-8156-59a626dfc97f",
+      "name": "HTTP Request7"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot8545930560:AAHAz7OjzpA6tqMcEb1bQfQkQoblmzzkrOg/sendMessage?chat_id={{ $node[\"Telegram Trigger\"].json.message.chat.id }}&text={{ encodeURIComponent(\"👋 Olá, \" + ($node[\"Telegram Trigger\"].json.message.from.first_name || \"usuário\") + \"!\\n\\nBem-vindo ao seu Comparador de Odds. Aqui você encontra as melhores cotações em tempo real.\\n\\nClique no botão abaixo para começar:\") }}&parse_mode=Markdown&reply_markup={{ encodeURIComponent(JSON.stringify({ inline_keyboard: [[{ text: \"🚀 Ver Campeonatos\", callback_data: \"btn_1\" }]] })) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -432,
+        -1056
+      ],
+      "id": "8daf9495-9945-480d-80dc-fc0b390735a9",
+      "name": "Olá"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot8545930560:AAHAz7OjzpA6tqMcEb1bQfQkQoblmzzkrOg/sendMessage?chat_id={{ $node[\"Telegram Trigger\"].json.callback_query.message.chat.id }}&text={{ encodeURIComponent(\"Selecione um campeonato para ver as Odds:\") }}&reply_markup={{ encodeURIComponent(JSON.stringify($json.reply_markup)) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        240,
+        -880
+      ],
+      "id": "58561cdb-d212-4666-a37a-f2deb39cb712",
+      "name": "Liga"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot8545930560:AAHAz7OjzpA6tqMcEb1bQfQkQoblmzzkrOg/sendMessage?chat_id={{ $node[\"Telegram Trigger\"].json.callback_query.message.chat.id }}&text={{ encodeURIComponent(\"Jogos disponíveis em \" + $json.liga + \":\") }}&reply_markup={{ encodeURIComponent(JSON.stringify($json.reply_markup)) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        160,
+        -480
+      ],
+      "id": "94874d3a-e4e5-43f0-943a-1a355d32f6b7",
+      "name": "Jogo"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.telegram.org/bot8545930560:AAHAz7OjzpA6tqMcEb1bQfQkQoblmzzkrOg/editMessageText?chat_id={{$node[\"Telegram Trigger\"].json.callback_query.message.chat.id}}&message_id={{$node[\"Telegram Trigger\"].json.callback_query.message.message_id}}&text={{encodeURIComponent($json.texto)}}&parse_mode=Markdown&reply_markup={{encodeURIComponent(JSON.stringify({ inline_keyboard: [[{ text: \"⬅️ Voltar para \" + $json.liga, callback_data: \"league_\" + $json.liga }], [{ text: \"🏠 Início\", callback_data: \"btn_1\" }, { text: \"❌ Fechar\", callback_data: \"fechar\" }]] }))}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        176,
+        -48
+      ],
+      "id": "fe732d72-96da-48a8-add3-db3b8cdc9e8c",
+      "name": "Odd"
+    },
+    {
+      "parameters": {
+        "url": "http://betting-bot-api:8000/api/events",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -432,
+        -880
+      ],
+      "id": "70cfd0cb-27b6-475f-8850-c50c8f855dca",
+      "name": "BD_Liga"
+    },
+    {
+      "parameters": {
+        "url": "http://betting-bot-api:8000/api/events",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -432,
+        -480
+      ],
+      "id": "0522418f-43e1-4543-8ed8-38ea8aea464a",
+      "name": "BD_Jogo"
+    },
+    {
+      "parameters": {
+        "url": "http://betting-bot-api:8000/api/events",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -416,
+        -48
+      ],
+      "id": "0a379efe-347e-4555-8289-100110c78fcd",
+      "name": "BD_Odd"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pega a lista de eventos da sua API\nconst eventos = $input.first().json.events || [];\nconst ligasUnicas = new Set();\nconst botoes = [];\n\neventos.forEach(evento => {\n    // Garante que não vamos repetir botões para a mesma liga\n    if (evento.league && !ligasUnicas.has(evento.league)) {\n        ligasUnicas.add(evento.league);\n        botoes.push([{\n            text: `⚽ ${evento.league}`,\n            callback_data: `league_${evento.league}`\n        }]);\n    }\n});\n\nreturn { json: { reply_markup: { inline_keyboard: botoes } } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        -880
+      ],
+      "id": "b886eb7f-9155-47e7-a110-579a182cb23d",
+      "name": "Code_Liga"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Captura a liga clicada\nconst clique = $node[\"Telegram Trigger\"].json.callback_query.data;\nconst ligaAlvo = clique.replace('league_', '');\n\nconst eventos = $input.first().json.events || [];\nconst idsProcessados = new Set(); // Conjunto para evitar duplicatas\nconst botoes = [];\n\neventos.forEach(jogo => {\n    // Só entra se for a liga certa E se ainda não processamos este ID de evento\n    if (jogo.league === ligaAlvo && !idsProcessados.has(jogo.eventId)) {\n        idsProcessados.add(jogo.eventId); // Marca o ID como processado\n        \n        botoes.push([{\n            text: `🏟️ ${jogo.homeTeam} x ${jogo.awayTeam}`,\n            callback_data: `game_${jogo.eventId}` // Envia para a Saída 3\n        }]);\n    }\n});\n\nreturn { json: { reply_markup: { inline_keyboard: botoes }, liga: ligaAlvo } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        -480
+      ],
+      "id": "3bc826eb-024c-44a6-bb2f-1627af1412cc",
+      "name": "Code_Jogo"
+    },
+    {
+      "parameters": {
+        "jsCode": "const clique = $node[\"Telegram Trigger\"].json.callback_query.data;\nconst idDoJogo = clique.replace('game_', '');\nconst eventos = $input.first().json.events || [];\n\n// Filtra o jogo pelo ID\nconst jogoEncontrado = eventos.find(e => String(e.eventId) === String(idDoJogo));\n\nif (!jogoEncontrado || !jogoEncontrado.odds) {\n    return { json: { texto: \"⚠️ Nenhuma Odd disponível para este jogo no momento.\" } };\n}\n\nlet textoOdds = `📊 *ODDS: ${jogoEncontrado.homeTeam} x ${jogoEncontrado.awayTeam}*\\n`;\ntextoOdds += `🏆 Liga: ${jogoEncontrado.league}\\n\\n`;\n\n// Percorre o objeto 'odds' onde cada chave é o nome da banca (Bet365, Betano, etc)\nconst bancas = Object.keys(jogoEncontrado.odds);\n\nbancas.forEach(banca => {\n    const cotacao = jogoEncontrado.odds[banca];\n    \n    textoOdds += `📍 *${banca}*\\n`;\n    textoOdds += `  • Casa: ${cotacao.homeOdd || '---'}\\n`;\n    textoOdds += `  • Empate: ${cotacao.drawOdd || '---'}\\n`;\n    textoOdds += `  • Fora: ${cotacao.awayOdd || '---'}\\n`;\n    // Adicionais se você quiser mostrar:\n    textoOdds += `  • 1X: ${cotacao.homeOrDrawOdd || '---'} | X2: ${cotacao.awayOrDrawOdd || '---'}\\n\\n`;\n});\n\ntextoOdds += `_🕒 Atualizado: ${new Date().toLocaleTimeString('pt-BR')}_`;\n\nreturn { \n    json: { \n        texto: textoOdds, \n        liga: jogoEncontrado.league // <--- Adicionamos essa linha para o nó de envio saber qual era a liga\n    } \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -128,
+        -48
+      ],
+      "id": "ad39fb3f-0a8f-4462-8f3d-4953c3383622",
+      "name": "Code_Odd"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -336,
+        -1600
+      ],
+      "id": "e618e7ad-3cf0-4913-94e2-50a2cbfa235e",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "jsCode": "const resultados = $input.all().map(i => i.json);\n\nconst falhas = resultados.filter(r => !r.success);\nconst sucessos = resultados.filter(r => r.success);\n\nif (sucessos.length === 0) {\n  throw new Error(\"Todos os scrapers falharam 💥\");\n}\n\nreturn {\n  json: {\n    sucessos,\n    falhas,\n    ok: true\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        -1584
+      ],
+      "id": "a3c724f1-dc89-469e-bd27-0ff4698be8aa",
+      "name": "Validação de sucessos"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request Bet365",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request Betano",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request Superbet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Olá",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "BD_Liga",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "BD_Jogo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "BD_Odd",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "HTTP Request7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BD_Liga": {
+      "main": [
+        [
+          {
+            "node": "Code_Liga",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BD_Jogo": {
+      "main": [
+        [
+          {
+            "node": "Code_Jogo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "BD_Odd": {
+      "main": [
+        [
+          {
+            "node": "Code_Odd",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Liga": {
+      "main": [
+        [
+          {
+            "node": "Liga",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Jogo": {
+      "main": [
+        [
+          {
+            "node": "Jogo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code_Odd": {
+      "main": [
+        [
+          {
+            "node": "Odd",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Bet365": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request Betano": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HTTP Request Superbet": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Validação de sucessos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "c5c3aee9-c5e3-4f41-b1b9-91edda741407",
+  "meta": {
+    "instanceId": "f5aea7d66d195c4585567517c91f3533bf8c17a6d3f8ca69ef98931964bf76b6"
+  },
+  "id": "G9zMKQLmWpqo-m-x2dGcz",
+  "tags": []
+}
