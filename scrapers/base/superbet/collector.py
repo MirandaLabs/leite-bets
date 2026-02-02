@@ -2,6 +2,7 @@ from playwright.sync_api import sync_playwright, TimeoutError
 import logging
 from scrapers.base.superbet.parser import parse_matchresult_from_main_page
 from scrapers.shared.errors import ScraperError
+from scrapers.shared.browser import get_browser_context
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -11,30 +12,14 @@ SUPERBET_URL = "https://superbet.bet.br/apostas/futebol/brasil/brasileiro-serie-
 
 
 def collect():
-    """Collect match odds from Superbet using Playwright.
+    """Collect match odds from Superbet using Playwright with proxy rotation.
     
     Note: This collects only data available on the main page without navigating to individual events.
     Superbet's double chance odds may not be visible on the main listing page.
     """
     
     with sync_playwright() as p:
-        browser = p.chromium.launch(
-            headless=True,  # Must be True for Docker environment
-            args=[
-                "--disable-blink-features=AutomationControlled",
-                "--no-sandbox",
-                "--disable-dev-shm-usage"
-            ]
-        )
-        context = browser.new_context(
-            locale="pt-BR",
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/120.0.0.0 Safari/537.36"
-            ),
-            viewport={"width": 1920, "height": 1080}
-        )
+        browser, context = get_browser_context(p, scraper_name="superbet")
         page = context.new_page()
 
         try:
