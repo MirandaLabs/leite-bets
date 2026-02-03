@@ -15,7 +15,8 @@ COPY . .
 # Tornar os scripts de entrypoint executáveis
 RUN chmod +x entrypoint.sh entrypoint-bot.sh entrypoint-railway.sh
 
-EXPOSE 8000
+# Railway usa PORT dinamicamente (8080 geralmente)
+EXPOSE 8000 8080
 
 # Usar entrypoint-railway.sh que tem suporte a Railway
 ENTRYPOINT ["./entrypoint-railway.sh"]
