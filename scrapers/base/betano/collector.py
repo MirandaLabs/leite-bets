@@ -20,21 +20,39 @@ def collect():
 
         try:
             logger.info(f"Opening Betano URL: {BETANO_URL}")
-            page.goto(BETANO_URL, timeout=60000, wait_until="domcontentloaded")
             
-            # Wait a bit for dynamic content to load
-            page.wait_for_timeout(5000)
+            # Wait for network to be idle (JavaScript loaded)
+            page.goto(BETANO_URL, timeout=60000, wait_until="networkidle")
+            
+            logger.info(f"Page loaded, waiting for content to render...")
+            
+            # Wait for the event container to appear (or timeout after 15s)
+            try:
+                page.wait_for_selector("div.tw-flex.tw-w-full.tw-flex-row.tw-items-start", timeout=15000)
+                logger.info("✅ Event container found!")
+            except TimeoutError:
+                logger.warning("⚠️ Event container not found, trying alternative selectors...")
+                # Try waiting for any Betano content
+                try:
+                    page.wait_for_selector("div[class*='tw-']", timeout=10000)
+                except TimeoutError:
+                    logger.error("❌ No Betano content loaded - site may be blocking or page structure changed")
+            
+            # Additional wait for dynamic content
+            page.wait_for_timeout(3000)
             
             # Get the HTML content
             html = page.content()
+            title = page.title()
             
-            logger.info(f"HTML retrieved ({len(html)} bytes), parsing matches...")
+            logger.info(f"HTML retrieved ({len(html)} bytes), title: {title}")
             
-            # Debug: Check if we're getting blocked
-            if len(html) < 5000:
-                logger.warning(f"⚠️ HTML muito pequeno ({len(html)} bytes) - possível bloqueio!")
-                logger.warning(f"Primeiros 500 caracteres: {html[:500]}")
-                logger.warning(f"Title da página: {page.title()}")
+            # Check if we got the splash screen instead of real content
+            if "splash" in title.lower() or len(html) < 10000:
+                logger.error(f"⚠️ Got splash screen or incomplete HTML!")
+                logger.error(f"Title: {title}")
+                logger.error(f"HTML size: {len(html)} bytes")
+                return []
             
             matches = parse_matchresult(html)
             
