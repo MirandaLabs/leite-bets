@@ -14,6 +14,5 @@ COPY . .
 # Exponha porta para health check
 EXPOSE 8080
 
-# Use o entrypoint que inicia health check + bot
-ENTRYPOINT ["./entrypoint-bot.sh"]
+# Direto sem entrypoint (health server já inicia dentro do telegram_bot_auto.py)
 CMD ["python", "telegram_bot_auto.py"]

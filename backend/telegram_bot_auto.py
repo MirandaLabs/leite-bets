@@ -7,14 +7,27 @@ from dotenv import load_dotenv
 from models import SessionLocal
 from arbitrage import buscar_oportunidades_automaticas, limpar_eventos_antigos
 
+print("=" * 60)
+print("🤖 INICIANDO BOT DO TELEGRAM")
+print("=" * 60)
+
 # Inicia health check server para Railway
-from health_server import start_health_server_thread
-start_health_server_thread(port=8080)
+print("🔧 Configurando health check server...")
+try:
+    from health_server import start_health_server_thread
+    start_health_server_thread(port=8080)
+    print("✅ Health check server configurado com sucesso!")
+except Exception as e:
+    print(f"❌ ERRO ao configurar health server: {e}")
+    print("⚠️  Bot continuará sem health check (pode ter problemas no Railway)")
 
 load_dotenv()
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
+
+print(f"🔑 TELEGRAM_BOT_TOKEN: {'✅ Configurado' if TELEGRAM_BOT_TOKEN else '❌ Não encontrado'}")
+print(f"💬 TELEGRAM_CHAT_ID: {'✅ Configurado' if TELEGRAM_CHAT_ID else '❌ Não encontrado'}")
 
 if not TELEGRAM_BOT_TOKEN:
     raise ValueError("TELEGRAM_BOT_TOKEN não encontrado no .env")
