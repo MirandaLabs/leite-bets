@@ -16,6 +16,10 @@ def wait_for_db(max_retries=30, delay=2):
         print("❌ DATABASE_URL não configurada!")
         sys.exit(1)
     
+    # Garante que usa psycopg3 (não psycopg2)
+    if database_url.startswith("postgresql://"):
+        database_url = database_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    
     print(f"🔄 Verificando conexão com PostgreSQL...")
     
     for attempt in range(1, max_retries + 1):
