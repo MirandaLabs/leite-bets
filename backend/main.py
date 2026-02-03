@@ -400,18 +400,23 @@ def trigger_all_scrapers():
     Retorna resultado consolidado.
     """
     from datetime import datetime
+    import os
+    
+    # URL do serviço scraper (variável de ambiente)
+    scraper_base_url = os.getenv("SCRAPER_API_URL", "http://localhost:8001")
     
     results = {
         "triggered_at": datetime.utcnow().isoformat(),
+        "scraper_url": scraper_base_url,
         "scrapers": {}
     }
     
     # Lista de scrapers disponíveis
     scrapers = {
-        "betano": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/betano",
-        "bet365": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/bet365",
-        "superbet": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/superbet",
-        "esportesdasorte": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/esportesdasorte"
+        "betano": f"{scraper_base_url}/scrape/betano",
+        "bet365": f"{scraper_base_url}/scrape/bet365",
+        "superbet": f"{scraper_base_url}/scrape/superbet",
+        "esportesdasorte": f"{scraper_base_url}/scrape/esportesdasorte"
     }
     
     import requests
@@ -441,12 +446,16 @@ def trigger_scraper_casa(casa: str):
     """
     from datetime import datetime
     import requests
+    import os
+    
+    # URL do serviço scraper (variável de ambiente)
+    scraper_base_url = os.getenv("SCRAPER_API_URL", "http://localhost:8001")
     
     scrapers = {
-        "betano": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/betano",
-        "bet365": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/bet365",
-        "superbet": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/superbet",
-        "esportesdasorte": "https://marian-precocious-defyingly.ngrok-free.dev/scrape/esportesdasorte"
+        "betano": f"{scraper_base_url}/scrape/betano",
+        "bet365": f"{scraper_base_url}/scrape/bet365",
+        "superbet": f"{scraper_base_url}/scrape/superbet",
+        "esportesdasorte": f"{scraper_base_url}/scrape/esportesdasorte"
     }
     
     if casa not in scrapers:
