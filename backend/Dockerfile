@@ -18,7 +18,6 @@ RUN chmod +x entrypoint.sh entrypoint-bot.sh entrypoint-railway.sh
 # Railway usa PORT dinamicamente (8080 geralmente)
 EXPOSE 8000 8080
 
-# Iniciar direto sem entrypoint complexo
-# As migrações serão feitas no startup da aplicação via lifespan
-CMD ["sh", "-c", "python -c 'from models import Base, engine; Base.metadata.create_all(engine)' && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
+# Usar script Python robusto que aguarda PostgreSQL e inicia o servidor
+CMD ["python", "railway_start.py"]
 
