@@ -11,6 +11,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-EXPOSE 8000
+# Exponha porta para health check
+EXPOSE 8080
 
+# Use o entrypoint que inicia health check + bot
+ENTRYPOINT ["./entrypoint-bot.sh"]
 CMD ["python", "telegram_bot_auto.py"]

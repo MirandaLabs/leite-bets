@@ -7,6 +7,10 @@ from dotenv import load_dotenv
 from models import SessionLocal
 from arbitrage import buscar_oportunidades_automaticas, limpar_eventos_antigos
 
+# Inicia health check server para Railway
+from health_server import start_health_server_thread
+start_health_server_thread(port=8080)
+
 load_dotenv()
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
