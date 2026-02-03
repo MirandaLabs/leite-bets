@@ -20,12 +20,10 @@ python -c "from models import Base, engine; Base.metadata.create_all(engine)" ||
 }
 
 echo "🔧 Aplicando migrações via Python..."
-python -c "
+python << 'PYTHON_SCRIPT'
 from models import engine
-import os
 
-# Executar migrações SQL
-migrations = '''
+migrations = """
 ALTER TABLE events ADD COLUMN IF NOT EXISTS finished_at TIMESTAMP;
 ALTER TABLE odds ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
 ALTER TABLE odds ADD COLUMN IF NOT EXISTS home_or_draw_odd DECIMAL(10, 2);
@@ -36,7 +34,7 @@ CREATE INDEX IF NOT EXISTS idx_events_event_date ON events(event_date);
 CREATE INDEX IF NOT EXISTS idx_odds_is_active ON odds(is_active);
 CREATE INDEX IF NOT EXISTS idx_events_finished_at ON events(finished_at);
 CREATE INDEX IF NOT EXISTS idx_odds_event_bookmaker ON odds(event_id, bookmaker);
-'''
+"""
 
 with engine.connect() as conn:
     for statement in migrations.strip().split(';'):
@@ -45,14 +43,10 @@ with engine.connect() as conn:
                 conn.execute(statement)
                 conn.commit()
             except Exception as e:
-                print(f'Migration statement skipped: {e}')
-                pass
+                print(f'Migration skipped: {e}')
 
 print('✅ Migrações aplicadas!')
-" || {
-    echo "⚠️  Erro nas migrações, mas continuando..."
-}
-
+PYTHON_SCRIPT
 
 echo "🚀 Iniciando API..."
 exec uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
