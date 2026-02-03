@@ -1,0 +1,582 @@
+{
+  "name": "Telegram Bot - Leite Bets",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message",
+          "callback_query"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ],
+      "id": "telegram-trigger",
+      "name": "Telegram Trigger",
+      "webhookId": "telegram-webhook-leite-bets",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-credentials",
+          "name": "Telegram Bot"
+        }
+      },
+      "notes": "Recebe mensagens e callbacks do Telegram"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message?.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "notEmpty",
+                      "singleValue": true
+                    },
+                    "id": "message-text"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "message"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "callback-btn",
+                    "leftValue": "={{ $json.callback_query?.data }}",
+                    "rightValue": "btn_",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "button"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "callback-league",
+                    "leftValue": "={{ $json.callback_query?.data }}",
+                    "rightValue": "league_",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "league"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "callback-game",
+                    "leftValue": "={{ $json.callback_query?.data }}",
+                    "rightValue": "game_",
+                    "operator": {
+                      "type": "string",
+                      "operation": "startsWith"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "game"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "callback-close",
+                    "leftValue": "={{ $json.callback_query?.data }}",
+                    "rightValue": "fechar",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "close"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        300
+      ],
+      "id": "router",
+      "name": "Router",
+      "notes": "Direciona fluxo baseado no tipo de interação"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "={{ \"👋 Olá, \" + ($json.message.from.first_name || \"usuário\") + \"!\\n\\nBem-vindo ao seu Comparador de Odds. Aqui você encontra as melhores cotações em tempo real.\\n\\nClique no botão abaixo para começar:\" }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "buttons": [
+                {
+                  "text": "🚀 Ver Campeonatos",
+                  "callbackData": "btn_1"
+                }
+              ]
+            }
+          ]
+        },
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        680,
+        100
+      ],
+      "id": "send-welcome",
+      "name": "Send Welcome",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-credentials",
+          "name": "Telegram Bot"
+        }
+      },
+      "notes": "Mensagem de boas-vindas"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://leite-bets-production.up.railway.app/api/events",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        680,
+        220
+      ],
+      "id": "fetch-leagues",
+      "name": "Fetch Leagues",
+      "notes": "Busca eventos do backend"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extrai ligas únicas dos eventos\nconst eventos = $input.first().json.events || [];\nconst ligasUnicas = new Set();\nconst botoes = [];\n\neventos.forEach(evento => {\n    if (evento.league && !ligasUnicas.has(evento.league)) {\n        ligasUnicas.add(evento.league);\n        botoes.push([{\n            text: `⚽ ${evento.league}`,\n            callback_data: `league_${evento.league}`\n        }]);\n    }\n});\n\nreturn { \n  json: { \n    reply_markup: { \n      inline_keyboard: botoes \n    },\n    chat_id: $node[\"Telegram Trigger\"].json.callback_query.message.chat.id\n  } \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        220
+      ],
+      "id": "format-leagues",
+      "name": "Format Leagues",
+      "notes": "Formata botões de ligas"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "Selecione um campeonato para ver as Odds:",
+        "replyMarkup": "keyboard",
+        "keyboard": "={{ JSON.stringify($json.reply_markup) }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1120,
+        220
+      ],
+      "id": "send-leagues",
+      "name": "Send Leagues",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-credentials",
+          "name": "Telegram Bot"
+        }
+      },
+      "notes": "Envia lista de campeonatos"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://leite-bets-production.up.railway.app/api/events",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        680,
+        340
+      ],
+      "id": "fetch-games",
+      "name": "Fetch Games",
+      "notes": "Busca eventos do backend"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filtra jogos da liga selecionada\nconst clique = $node[\"Telegram Trigger\"].json.callback_query.data;\nconst ligaAlvo = clique.replace('league_', '');\nconst eventos = $input.first().json.events || [];\nconst idsProcessados = new Set();\nconst botoes = [];\n\neventos.forEach(jogo => {\n    if (jogo.league === ligaAlvo && !idsProcessados.has(jogo.eventId)) {\n        idsProcessados.add(jogo.eventId);\n        botoes.push([{\n            text: `🏟️ ${jogo.homeTeam} x ${jogo.awayTeam}`,\n            callback_data: `game_${jogo.eventId}`\n        }]);\n    }\n});\n\n// Adiciona botão de voltar\nbotoes.push([{\n    text: \"⬅️ Voltar\",\n    callback_data: \"btn_1\"\n}]);\n\nreturn { \n  json: { \n    reply_markup: { inline_keyboard: botoes },\n    liga: ligaAlvo,\n    chat_id: $node[\"Telegram Trigger\"].json.callback_query.message.chat.id\n  } \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        340
+      ],
+      "id": "format-games",
+      "name": "Format Games",
+      "notes": "Formata botões de jogos"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ \"Jogos disponíveis em \" + $json.liga + \":\" }}",
+        "replyMarkup": "keyboard",
+        "keyboard": "={{ JSON.stringify($json.reply_markup) }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1120,
+        340
+      ],
+      "id": "send-games",
+      "name": "Send Games",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-credentials",
+          "name": "Telegram Bot"
+        }
+      },
+      "notes": "Envia lista de jogos"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://leite-bets-production.up.railway.app/api/events",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        680,
+        460
+      ],
+      "id": "fetch-odds",
+      "name": "Fetch Odds",
+      "notes": "Busca eventos do backend"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Busca odds do jogo selecionado\nconst clique = $node[\"Telegram Trigger\"].json.callback_query.data;\nconst idDoJogo = clique.replace('game_', '');\nconst eventos = $input.first().json.events || [];\nconst jogoEncontrado = eventos.find(e => String(e.eventId) === String(idDoJogo));\n\nif (!jogoEncontrado || !jogoEncontrado.odds) {\n    return { \n      json: { \n        texto: \"⚠️ Nenhuma Odd disponível para este jogo no momento.\",\n        chat_id: $node[\"Telegram Trigger\"].json.callback_query.message.chat.id,\n        message_id: $node[\"Telegram Trigger\"].json.callback_query.message.message_id\n      } \n    };\n}\n\nlet textoOdds = `📊 *ODDS: ${jogoEncontrado.homeTeam} x ${jogoEncontrado.awayTeam}*\\n`;\ntextoOdds += `🏆 Liga: ${jogoEncontrado.league}\\n\\n`;\n\nconst bancas = Object.keys(jogoEncontrado.odds);\n\nbancas.forEach(banca => {\n    const cotacao = jogoEncontrado.odds[banca];\n    textoOdds += `📍 *${banca}*\\n`;\n    textoOdds += `  • Casa: ${cotacao.homeOdd || '---'}\\n`;\n    textoOdds += `  • Empate: ${cotacao.drawOdd || '---'}\\n`;\n    textoOdds += `  • Fora: ${cotacao.awayOdd || '---'}\\n`;\n    textoOdds += `  • 1X: ${cotacao.homeOrDrawOdd || '---'} | X2: ${cotacao.awayOrDrawOdd || '---'}\\n\\n`;\n});\n\ntextoOdds += `_🕒 Atualizado: ${new Date().toLocaleTimeString('pt-BR')}_`;\n\nreturn { \n  json: { \n    texto: textoOdds,\n    liga: jogoEncontrado.league,\n    chat_id: $node[\"Telegram Trigger\"].json.callback_query.message.chat.id,\n    message_id: $node[\"Telegram Trigger\"].json.callback_query.message.message_id\n  } \n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        460
+      ],
+      "id": "format-odds",
+      "name": "Format Odds",
+      "notes": "Formata mensagem de odds"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ \"https://api.telegram.org/bot\" + $env.TELEGRAM_BOT_TOKEN + \"/editMessageText\" }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $json.chat_id }}"
+            },
+            {
+              "name": "message_id",
+              "value": "={{ $json.message_id }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.texto }}"
+            },
+            {
+              "name": "parse_mode",
+              "value": "Markdown"
+            },
+            {
+              "name": "reply_markup",
+              "value": "={{ JSON.stringify({ inline_keyboard: [[{ text: \"⬅️ Voltar para \" + $json.liga, callback_data: \"league_\" + $json.liga }], [{ text: \"🏠 Início\", callback_data: \"btn_1\" }, { text: \"❌ Fechar\", callback_data: \"fechar\" }]] }) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        1120,
+        460
+      ],
+      "id": "send-odds",
+      "name": "Send Odds",
+      "notes": "Envia odds do jogo (edita mensagem)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ \"https://api.telegram.org/bot\" + $env.TELEGRAM_BOT_TOKEN + \"/editMessageText\" }}",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "chat_id",
+              "value": "={{ $json.callback_query.message.chat.id }}"
+            },
+            {
+              "name": "message_id",
+              "value": "={{ $json.callback_query.message.message_id }}"
+            },
+            {
+              "name": "text",
+              "value": "Consulta finalizada. Quando precisar de novas odds, é só chamar! 👋"
+            },
+            {
+              "name": "reply_markup",
+              "value": "={{ JSON.stringify({inline_keyboard: []}) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        680,
+        580
+      ],
+      "id": "close-conversation",
+      "name": "Close Conversation",
+      "notes": "Fecha conversa (remove botões)"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router": {
+      "main": [
+        [
+          {
+            "node": "Send Welcome",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Leagues",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Games",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fetch Odds",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Close Conversation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Leagues": {
+      "main": [
+        [
+          {
+            "node": "Format Leagues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Leagues": {
+      "main": [
+        [
+          {
+            "node": "Send Leagues",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Games": {
+      "main": [
+        [
+          {
+            "node": "Format Games",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Games": {
+      "main": [
+        [
+          {
+            "node": "Send Games",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Odds": {
+      "main": [
+        [
+          {
+            "node": "Format Odds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Odds": {
+      "main": [
+        [
+          {
+            "node": "Send Odds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "versionId": "telegram-bot-v1",
+  "meta": {
+    "instanceId": "railway-n8n-instance"
+  },
+  "id": "telegram-bot-leite-bets",
+  "tags": [
+    {
+      "name": "production",
+      "id": "prod"
+    },
+    {
+      "name": "telegram",
+      "id": "telegram"
+    }
+  ]
+}

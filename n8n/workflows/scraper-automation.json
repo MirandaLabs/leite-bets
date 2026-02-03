@@ -1,0 +1,219 @@
+{
+  "name": "Scraper Automation - Leite Bets",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10-21/2 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger-node",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        300
+      ],
+      "notes": "Executa a cada 2 horas entre 10h e 21h"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://leite-bets-production.up.railway.app/api/trigger/all",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        460,
+        300
+      ],
+      "id": "trigger-all-scrapers",
+      "name": "Trigger All Scrapers",
+      "notes": "Chama endpoint que dispara todos os scrapers (timeout 3min)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Analisa resultado dos scrapers\nconst response = $input.first().json;\nconst scrapers = response.scrapers || {};\n\n// Conta sucessos e falhas\nlet totalScrapers = 0;\nlet sucessos = 0;\nlet falhas = 0;\nlet detalhes = [];\n\nObject.keys(scrapers).forEach(scraper => {\n  totalScrapers++;\n  const resultado = scrapers[scraper];\n  \n  if (resultado.status === 'success') {\n    sucessos++;\n    detalhes.push(`✅ ${scraper}: ${resultado.items || 0} items`);\n  } else {\n    falhas++;\n    const erro = resultado.error || 'Erro desconhecido';\n    detalhes.push(`❌ ${scraper}: ${erro.substring(0, 50)}...`);\n  }\n});\n\n// Formata mensagem\nconst timestamp = new Date(response.triggered_at).toLocaleString('pt-BR');\nconst emoji = sucessos === totalScrapers ? '🎉' : sucessos > 0 ? '⚠️' : '🔴';\n\nconst mensagem = `${emoji} *Execução de Scrapers - ${timestamp}*\\n\\n` +\n  `📊 *Resumo:*\\n` +\n  `• Total: ${totalScrapers} scrapers\\n` +\n  `• Sucessos: ${sucessos}\\n` +\n  `• Falhas: ${falhas}\\n\\n` +\n  `📝 *Detalhes:*\\n${detalhes.join('\\n')}\\n\\n` +\n  `_Próxima execução em 2 horas_`;\n\nreturn {\n  json: {\n    mensagem,\n    sucessos,\n    falhas,\n    totalScrapers,\n    timestamp: response.triggered_at\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        680,
+        300
+      ],
+      "id": "format-result",
+      "name": "Format Result",
+      "notes": "Formata resultado em mensagem legível"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.totalScrapers }}",
+              "rightValue": "={{ $json.sucessos }}",
+              "operator": {
+                "type": "number",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        900,
+        300
+      ],
+      "id": "check-all-success",
+      "name": "All Success?",
+      "notes": "Verifica se todos scrapers funcionaram"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "={{ $json.mensagem }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1120,
+        200
+      ],
+      "id": "notify-success",
+      "name": "Notify Success",
+      "notes": "Notifica sucesso completo (opcional)",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-credentials",
+          "name": "Telegram Bot"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $env.TELEGRAM_CHAT_ID }}",
+        "text": "={{ $json.mensagem }}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1120,
+        400
+      ],
+      "id": "notify-partial-failure",
+      "name": "Notify Failures",
+      "notes": "Notifica falhas parciais ou totais",
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-credentials",
+          "name": "Telegram Bot"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Trigger All Scrapers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger All Scrapers": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Result": {
+      "main": [
+        [
+          {
+            "node": "All Success?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "All Success?": {
+      "main": [
+        [
+          {
+            "node": "Notify Success",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Notify Failures",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "versionId": "scraper-automation-v1",
+  "meta": {
+    "instanceId": "railway-n8n-instance"
+  },
+  "id": "scraper-automation-leite-bets",
+  "tags": [
+    {
+      "name": "production",
+      "id": "prod"
+    },
+    {
+      "name": "scraper",
+      "id": "scraper"
+    }
+  ]
+}

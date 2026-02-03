@@ -29,6 +29,13 @@ def collect():
             html = page.content()
             
             logger.info(f"HTML retrieved ({len(html)} bytes), parsing matches...")
+            
+            # Debug: Check if we're getting blocked
+            if len(html) < 5000:
+                logger.warning(f"⚠️ HTML muito pequeno ({len(html)} bytes) - possível bloqueio!")
+                logger.warning(f"Primeiros 500 caracteres: {html[:500]}")
+                logger.warning(f"Title da página: {page.title()}")
+            
             matches = parse_matchresult(html)
             
             logger.info(f"Found {len(matches)} matches")

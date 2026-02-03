@@ -1,0 +1,119 @@
+{
+  "name": "Scraper Automation - Leite Bets",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10-21/2 * * *"
+            }
+          ]
+        }
+      },
+      "id": "ff88cdf0-1403-4f80-af2b-898393ddf54e",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -880,
+        112
+      ],
+      "notes": "Executa a cada 2 horas entre 10h e 21h"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://leite-bets-production.up.railway.app/api/trigger/all",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -656,
+        112
+      ],
+      "id": "1e2904f9-2c68-48d5-b67c-43219567e702",
+      "name": "Trigger All Scrapers",
+      "notes": "Chama endpoint que dispara todos os scrapers (timeout 3min)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Analisa resultado dos scrapers\nconst response = $input.first().json;\nconst scrapers = response.scrapers || {};\n\n// Conta sucessos e falhas\nlet totalScrapers = 0;\nlet sucessos = 0;\nlet falhas = 0;\nlet detalhes = [];\n\nObject.keys(scrapers).forEach(scraper => {\n  totalScrapers++;\n  const resultado = scrapers[scraper];\n  \n  if (resultado.status === 'success') {\n    sucessos++;\n    detalhes.push(`✅ ${scraper}: ${resultado.items || 0} items`);\n  } else {\n    falhas++;\n    const erro = resultado.error || 'Erro desconhecido';\n    detalhes.push(`❌ ${scraper}: ${erro.substring(0, 50)}...`);\n  }\n});\n\n// Formata mensagem\nconst timestamp = new Date(response.triggered_at).toLocaleString('pt-BR');\nconst emoji = sucessos === totalScrapers ? '🎉' : sucessos > 0 ? '⚠️' : '🔴';\n\nconst mensagem = `${emoji} *Execução de Scrapers - ${timestamp}*\\n\\n` +\n  `📊 *Resumo:*\\n` +\n  `• Total: ${totalScrapers} scrapers\\n` +\n  `• Sucessos: ${sucessos}\\n` +\n  `• Falhas: ${falhas}\\n\\n` +\n  `📝 *Detalhes:*\\n${detalhes.join('\\n')}\\n\\n` +\n  `_Próxima execução em 2 horas_`;\n\nreturn {\n  json: {\n    mensagem,\n    sucessos,\n    falhas,\n    totalScrapers,\n    timestamp: response.triggered_at\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        112
+      ],
+      "id": "8ecf08e5-001a-4471-813d-868117d896e0",
+      "name": "Format Result",
+      "notes": "Formata resultado em mensagem legível"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Trigger All Scrapers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger All Scrapers": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Result": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "371d980f-1454-4d38-9bd2-87b16a1a5c06",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e3c690c4fd3014eb8a3cd0387f431535043fe68cadf9b560bc16aac258bbac0c"
+  },
+  "id": "sA1NzzY5q4T_a28rdmIIq",
+  "tags": [
+    {
+      "name": "production",
+      "id": "KbiWYcqmBAAuI1pY",
+      "updatedAt": "2026-02-03T22:27:30.934Z",
+      "createdAt": "2026-02-03T22:27:30.934Z"
+    },
+    {
+      "name": "scraper",
+      "id": "xdO6UMmFHgo5bns0",
+      "updatedAt": "2026-02-03T22:27:30.895Z",
+      "createdAt": "2026-02-03T22:27:30.895Z"
+    }
+  ]
+}
