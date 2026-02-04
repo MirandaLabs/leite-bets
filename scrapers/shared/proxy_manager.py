@@ -23,14 +23,15 @@ class ProxyManager:
     def _load_proxies(self) -> list[str]:
         """
         Carrega lista de proxies das variáveis de ambiente
-        Aceita formatos: IP_1=ip:porta OU IP_1=ip + PORT_1=porta
+        Aceita formatos: IP_1=ip:porta OU IP_1=ip (usa porta padrão)
         """
         proxies = []
+        default_port = os.getenv("PROXY_PORT", "80")
         
         logger.info("🔍 Tentando carregar proxies das variáveis de ambiente...")
         
-        # Carregar proxies das variáveis IP_X (com ou sem porta)
-        for i in range(1, 11):  # IP_1 até IP_10
+        # Carregar apenas 3 proxies residenciais (IP_1, IP_2, IP_3)
+        for i in range(1, 4):  # IP_1 até IP_3
             ip = os.getenv(f"IP_{i}")
             
             if not ip:
@@ -44,18 +45,13 @@ class ProxyManager:
                 proxies.append(ip)
                 logger.info(f"✅ IP_{i} carregado: {ip}")
             else:
-                # Se não tem porta, procurar PORT_X
-                port = os.getenv(f"PORT_{i}")
-                if port:
-                    port = port.strip()
-                    proxy = f"{ip}:{port}"
-                    proxies.append(proxy)
-                    logger.info(f"✅ IP_{i} + PORT_{i} carregado: {proxy}")
-                else:
-                    logger.warning(f"⚠️  IP_{i} sem porta (falta :porta ou PORT_{i})")
+                # Se não tem porta, usar porta padrão
+                proxy = f"{ip}:{default_port}"
+                proxies.append(proxy)
+                logger.info(f"✅ IP_{i} carregado: {proxy} (porta padrão)")
         
         if not proxies:
-            logger.warning("⚠️  Nenhum proxy encontrado no .env - scrapers rodarão sem proxy")
+            logger.warning("⚠️  Nenhum proxy encontrado - scrapers rodarão sem proxy")
             return []
         
         logger.info(f"✅ Total: {len(proxies)} proxies carregados")
@@ -102,22 +98,22 @@ class ProxyManager:
         if not proxy:
             return None
         
-        # Proxy já vem no formato IP:PORTA
-        # Autenticação obrigatória para Webshare
+        logger.info(f"🔀 Usando proxy residencial: {proxy}")
+        
+        # Proxies residenciais próprios - sem autenticação
+        proxy_config = {
+            "server": f"http://{proxy}"
+        }
+        
+        # Autenticação opcional (caso configure PROXY_USERNAME/PASSWORD)
         proxy_user = os.getenv("PROXY_USERNAME")
         proxy_pass = os.getenv("PROXY_PASSWORD")
+        if proxy_user and proxy_pass:
+            proxy_config["username"] = proxy_user
+            proxy_config["password"] = proxy_pass
+            logger.info(f"🔐 Proxy com autenticação")
         
-        if not proxy_user or not proxy_pass:
-            logger.error("❌ PROXY_USERNAME e PROXY_PASSWORD são obrigatórios para Webshare!")
-            return None
-        
-        logger.info(f"🔀 Usando proxy Webshare: {proxy} (user: {proxy_user[:3]}***)")
-        
-        return {
-            "server": f"http://{proxy}",
-            "username": proxy_user,
-            "password": proxy_pass
-        }
+        return proxy_config
     
     def get_used_proxy(self, scraper_name: str) -> Optional[str]:
         """
