@@ -93,6 +93,11 @@ class ProxyManager:
         Returns:
             Dict com configuração do proxy ou None
         """
+        # Permitir desabilitar proxies via variável DISABLE_PROXY=true
+        if os.getenv("DISABLE_PROXY", "").lower() in ["true", "1", "yes"]:
+            logger.warning("⚠️  Proxies desabilitados via DISABLE_PROXY")
+            return None
+        
         proxy = self.get_random_proxy(scraper_name)
         
         if not proxy:
