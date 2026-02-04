@@ -43,17 +43,33 @@ def collect():
             except Exception as e:
                 logger.info(f"No modal to close or already closed: {str(e)}")
             
+            # Screenshot ANTES de esperar elemento
+            import os
+            os.makedirs("storage/debug", exist_ok=True)
+            page.screenshot(path="storage/debug/esportesdasorte_before.png")
+            logger.info("📸 Screenshot salvo: storage/debug/esportesdasorte_before.png")
+            
+            # Check page response status
+            html = page.content()
+            if len(html) < 5000:
+                logger.warning(f"⚠️  HTML muito pequeno ({len(html)} bytes) - possível bloqueio")
+            
             # Wait for match elements to load
             logger.info("Waiting for match elements to load...")
-            page.wait_for_selector("div.element.flex-item.match", timeout=30000)
+            try:
+                page.wait_for_selector("div.element.flex-item.match", timeout=30000)
+                page.screenshot(path="storage/debug/esportesdasorte_loaded.png")
+                logger.info("✅ Elementos carregados")
+            except Exception as e:
+                page.screenshot(path="storage/debug/esportesdasorte_timeout.png")
+                logger.error(f"❌ Timeout - verificar screenshot: {str(e)}")
+                raise
             
             # Wait for content to render
             page.wait_for_timeout(3000)
             
             # Save HTML for debugging
             html_content = page.content()
-            import os
-            os.makedirs("storage/debug", exist_ok=True)
             with open("storage/debug/esportesdasorte.html", "w", encoding="utf-8") as f:
                 f.write(html_content)
             logger.info("Saved HTML to storage/debug/esportesdasorte.html for inspection")

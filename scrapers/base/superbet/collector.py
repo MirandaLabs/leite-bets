@@ -41,9 +41,26 @@ def collect():
             except Exception as e:
                 logger.info(f"No cookie popup found or already closed: {str(e)}")
             
+            # Screenshot e check HTML
+            import os
+            os.makedirs("storage/debug", exist_ok=True)
+            page.screenshot(path="storage/debug/superbet_before.png")
+            logger.info("📸 Screenshot salvo: storage/debug/superbet_before.png")
+            
+            html = page.content()
+            if len(html) < 5000:
+                logger.warning(f"⚠️  HTML muito pequeno ({len(html)} bytes) - possível bloqueio")
+            
             # Wait for event cards to load
             logger.info("Waiting for event cards to load...")
-            page.wait_for_selector("div.event-card.e2e-event-row", timeout=30000)
+            try:
+                page.wait_for_selector("div.event-card.e2e-event-row", timeout=30000)
+                page.screenshot(path="storage/debug/superbet_loaded.png")
+                logger.info("✅ Elementos carregados")
+            except Exception as e:
+                page.screenshot(path="storage/debug/superbet_timeout.png")
+                logger.error(f"❌ Timeout - verificar screenshot: {str(e)}")
+                raise
             
             # Wait a bit more for all content to render
             page.wait_for_timeout(3000)
