@@ -23,27 +23,36 @@ class ProxyManager:
     def _load_proxies(self) -> list[str]:
         """
         Carrega lista de proxies das variáveis de ambiente
-        Formato esperado: IP_1 + PORT_1, IP_2 + PORT_2, etc.
+        Aceita formatos: IP_1=ip:porta OU IP_1=ip + PORT_1=porta
         """
         proxies = []
         
         logger.info("🔍 Tentando carregar proxies das variáveis de ambiente...")
         
-        # Carregar proxies combinando IP_X com PORT_X
+        # Carregar proxies das variáveis IP_X (com ou sem porta)
         for i in range(1, 11):  # IP_1 até IP_10
             ip = os.getenv(f"IP_{i}")
-            port = os.getenv(f"PORT_{i}")
             
-            if ip and port:
-                ip = ip.strip()
-                port = port.strip()
-                proxy = f"{ip}:{port}"
-                proxies.append(proxy)
-                logger.info(f"✅ IP_{i} + PORT_{i} carregado: {proxy}")
-            elif ip:
-                logger.warning(f"⚠️  IP_{i} encontrado mas PORT_{i} está faltando")
-            else:
+            if not ip:
                 logger.debug(f"❌ IP_{i} não encontrado")
+                continue
+            
+            ip = ip.strip()
+            
+            # Se IP já contém porta (formato ip:porta)
+            if ':' in ip:
+                proxies.append(ip)
+                logger.info(f"✅ IP_{i} carregado: {ip}")
+            else:
+                # Se não tem porta, procurar PORT_X
+                port = os.getenv(f"PORT_{i}")
+                if port:
+                    port = port.strip()
+                    proxy = f"{ip}:{port}"
+                    proxies.append(proxy)
+                    logger.info(f"✅ IP_{i} + PORT_{i} carregado: {proxy}")
+                else:
+                    logger.warning(f"⚠️  IP_{i} sem porta (falta :porta ou PORT_{i})")
         
         if not proxies:
             logger.warning("⚠️  Nenhum proxy encontrado no .env - scrapers rodarão sem proxy")
