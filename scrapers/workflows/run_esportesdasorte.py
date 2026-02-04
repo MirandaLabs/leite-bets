@@ -2,7 +2,7 @@
 Workflow to collect Esportes da Sorte odds and send to API.
 """
 import logging
-from scrapers.base.esportesdasorte.collector import collect
+from scrapers.base.esportesdasorte.collector_simple import collect
 from scrapers.shared.sender import send_odds_to_api
 
 logger = logging.getLogger(__name__)
