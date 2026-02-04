@@ -21,37 +21,56 @@ def collect():
         try:
             logger.info(f"Opening Betano URL: {BETANO_URL}")
             
-            # Wait for network to be idle (JavaScript loaded)
-            page.goto(BETANO_URL, timeout=60000, wait_until="networkidle")
+            # Initial navigation
+            response = page.goto(BETANO_URL, timeout=60000, wait_until="networkidle")
+            logger.info(f"Initial load complete, status: {response.status}")
             
-            logger.info(f"Page loaded, waiting for content to render...")
+            # Check if we got the splash screen
+            title = page.title()
+            if "splash" in title.lower():
+                logger.warning("⚠️ Got splash screen, waiting for redirect...")
+                
+                # Wait for URL to change or content to load (max 20 seconds)
+                try:
+                    # Wait for either URL change or content to appear
+                    page.wait_for_function(
+                        "document.querySelector('div.tw-flex') !== null || window.location.href !== arguments[0]",
+                        BETANO_URL,
+                        timeout=20000
+                    )
+                    logger.info("✅ Page changed or content loaded!")
+                except TimeoutError:
+                    logger.error("❌ Splash screen timeout - no redirect happened")
+                    return []
             
-            # Wait for the event container to appear (or timeout after 15s)
+            # Wait for content to load
+            logger.info(f"Waiting for event container...")
             try:
                 page.wait_for_selector("div.tw-flex.tw-w-full.tw-flex-row.tw-items-start", timeout=15000)
                 logger.info("✅ Event container found!")
             except TimeoutError:
-                logger.warning("⚠️ Event container not found, trying alternative selectors...")
-                # Try waiting for any Betano content
+                logger.warning("⚠️ Event container not found with primary selector")
+                
+                # Try alternative - wait for any event-like structure
                 try:
-                    page.wait_for_selector("div[class*='tw-']", timeout=10000)
+                    page.wait_for_selector("div[class*='event'], div[class*='match']", timeout=10000)
+                    logger.info("✅ Found alternative event selector")
                 except TimeoutError:
-                    logger.error("❌ No Betano content loaded - site may be blocking or page structure changed")
+                    logger.error("❌ No event content found - page may not have matches or is blocked")
             
-            # Additional wait for dynamic content
-            page.wait_for_timeout(3000)
+            # Final wait for any dynamic updates
+            page.wait_for_timeout(2000)
             
             # Get the HTML content
             html = page.content()
             title = page.title()
             
-            logger.info(f"HTML retrieved ({len(html)} bytes), title: {title}")
+            logger.info(f"Final HTML: {len(html)} bytes, title: '{title}'")
             
-            # Check if we got the splash screen instead of real content
+            # Validate we have real content
             if "splash" in title.lower() or len(html) < 10000:
-                logger.error(f"⚠️ Got splash screen or incomplete HTML!")
-                logger.error(f"Title: {title}")
-                logger.error(f"HTML size: {len(html)} bytes")
+                logger.error(f"❌ Still on splash screen or incomplete page!")
+                logger.error(f"Current URL: {page.url}")
                 return []
             
             matches = parse_matchresult(html)
