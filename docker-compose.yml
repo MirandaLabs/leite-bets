@@ -4,15 +4,23 @@ services:
       context: .
       dockerfile: scrapers/dockerfile
     container_name: scraper
+    env_file:
+      - .env
     ports:
       - "8001:8000"
     restart: unless-stopped
     volumes:
       - ./storage:/app/storage
+      - ./scrapers:/app/scrapers
     networks:
       - betting-network
     environment:
-      - API_URL=http://api:8000/api/odds/scraper
+      # Local testing: use local API
+      # - API_URL=http://api:8000/api/odds/scraper
+      # Hybrid mode: uncomment to send to Railway backend
+      - API_URL=https://leite-bets-production.up.railway.app/api/odds/scraper
+      - DISABLE_PROXY=true
+      - PYTHONUNBUFFERED=1
 
   n8n:
     image: n8nio/n8n:2.4.6
@@ -66,6 +74,7 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://postgres:postgres123@postgres:5432/betting_bot
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      PYTHONUNBUFFERED: 1
     ports:
       - "8000:8000"
     depends_on:

@@ -1,5 +1,6 @@
 from playwright.sync_api import sync_playwright, TimeoutError
 import logging
+import time
 from scrapers.base.esportesdasorte.parser import parse_double_chance
 from scrapers.shared.errors import ScraperError
 from scrapers.shared.browser import get_browser_context
@@ -12,7 +13,7 @@ ESPORTESDASORTE_URL = "https://esportesdasorte.bet.br/ptb/bet/fixture-detail/soc
 
 
 def collect():
-    """Collect double chance odds from Esportes da Sorte using Playwright with proxy rotation."""
+    """Collect double chance odds from Esportes da Sorte - navegando pela lista de jogos."""
     
     with sync_playwright() as p:
         browser, context = get_browser_context(p, scraper_name="esportesdasorte")
@@ -22,12 +23,19 @@ def collect():
             logger.info(f"Opening Esportes da Sorte URL: {ESPORTESDASORTE_URL}")
             page.goto(ESPORTESDASORTE_URL, timeout=60000, wait_until="domcontentloaded")
             
-            # Try to close any modal overlays
+            # Aguardar carregamento
+            page.wait_for_timeout(3000)
+            
+            # Fechar modais/popups
             try:
                 logger.info("Checking for modal overlays...")
-                page.wait_for_timeout(2000)
-                
-                # Try to close modal by clicking overlay or close button
+                modal_overlay = page.query_selector("div.modal-overlay")
+                if modal_overlay and modal_overlay.is_visible():
+                    logger.info("Closing modal overlay...")
+                    modal_overlay.click()
+                    page.wait_for_timeout(1000)
+            except Exception as e:
+                logger.debug(f"No modal to close: {str(e)}")
                 modal_overlay = page.query_selector("div.modal-overlay")
                 if modal_overlay:
                     logger.info("Found modal overlay, attempting to close...")

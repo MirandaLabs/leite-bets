@@ -1,5 +1,6 @@
 from playwright.sync_api import sync_playwright
 import logging
+from datetime import datetime
 from scrapers.shared.errors import ScraperError
 from scrapers.shared.browser import get_browser_context
 
@@ -19,7 +20,15 @@ def collect():
         try:
             logger.info(f"Abrindo: {ESPORTESDASORTE_URL}")
             page.goto(ESPORTESDASORTE_URL, timeout=60000, wait_until="domcontentloaded")
-            page.wait_for_timeout(5000)
+            
+            # Tentar networkidle mas não bloquear se demorar
+            try:
+                page.wait_for_load_state("networkidle", timeout=15000)
+                logger.info("✅ Network idle alcançado")
+            except Exception as e:
+                logger.warning(f"⚠️  Network idle timeout (continuando): {e}")
+            
+            page.wait_for_timeout(3000)
             
             # Fechar modal se aparecer
             try:
@@ -30,19 +39,41 @@ def collect():
             except:
                 pass
             
-            # Screenshot
+            # Screenshot e HTML dump
             import os
             os.makedirs("storage/debug", exist_ok=True)
             page.screenshot(path="storage/debug/esportesdasorte_simple.png")
             logger.info("📸 Screenshot: storage/debug/esportesdasorte_simple.png")
             
-            # Buscar jogos (fixture-body)
+            # Dump HTML
+            html_content = page.content()
+            with open("storage/debug/esportesdasorte_simple.html", "w", encoding="utf-8") as f:
+                f.write(html_content)
+            logger.info("📄 HTML dump: storage/debug/esportesdasorte_simple.html")
+            
+            # Buscar jogos - tentar múltiplos seletores
             logger.info("Procurando jogos...")
-            fixtures = page.query_selector_all("div.fixture-body")
-            logger.info(f"✅ Encontrados {len(fixtures)} jogos")
+            
+            selectors = [
+                "div.fixture-body.flex-container",
+                "div.fixture-body",
+                "div.fixture-container",
+                "div[class*='fixture']",
+                "div[class*='match']",
+                "div[class*='event']"
+            ]
+            
+            fixtures = []
+            for selector in selectors:
+                fixtures = page.query_selector_all(selector)
+                if len(fixtures) > 0:
+                    logger.info(f"✅ Encontrados {len(fixtures)} elementos com seletor: {selector}")
+                    break
+                else:
+                    logger.info(f"❌ Seletor '{selector}' não encontrou elementos")
             
             if len(fixtures) == 0:
-                logger.error("❌ Nenhum jogo encontrado - possível bloqueio")
+                logger.error("❌ Nenhum jogo encontrado com nenhum seletor - possível bloqueio ou página vazia")
                 page.screenshot(path="storage/debug/esportesdasorte_no_games.png")
                 return []
             
@@ -74,14 +105,28 @@ def collect():
                     draw_odd = odds_buttons[1].query_selector("span.bet-btn-odd").inner_text().strip()
                     away_odd = odds_buttons[2].query_selector("span.bet-btn-odd").inner_text().strip()
                     
+                    # Formato esperado pela API
+                    event_name = f"{home} vs {away}"
                     odds_data.append({
-                        "home": home,
-                        "away": away,
-                        "market": "1X2",
-                        "bookmaker": "Esportes da Sorte",
-                        "home_odd": float(home_odd),
-                        "draw_odd": float(draw_odd),
-                        "away_odd": float(away_odd)
+                        "source": "esportesdasorte",
+                        "sport": "soccer",
+                        "competition": "Brasileiro Série A",
+                        "event": {
+                            "id": event_name.lower().replace(" ", "-"),
+                            "name": event_name,
+                            "start_time": None,
+                            "status": "upcoming"
+                        },
+                        "market": {
+                            "type": "1X2",
+                            "name": "Resultado Final",
+                            "selections": [
+                                {"key": "1", "name": home, "odd": float(home_odd.replace(",", "."))},
+                                {"key": "X", "name": "Empate", "odd": float(draw_odd.replace(",", "."))},
+                                {"key": "2", "name": away, "odd": float(away_odd.replace(",", "."))}
+                            ]
+                        },
+                        "collected_at": datetime.utcnow().isoformat()
                     })
                     
                     logger.info(f"✅ {home} vs {away}: {home_odd} / {draw_odd} / {away_odd}")
