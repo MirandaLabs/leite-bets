@@ -25,22 +25,29 @@ def collect():
             response = page.goto(BETANO_URL, timeout=60000, wait_until="networkidle")
             logger.info(f"Initial load complete, status: {response.status}")
             
+            # Check for blocking
+            if response.status == 403:
+                logger.error("❌ Betano returned 403 Forbidden - site is blocking us!")
+                logger.error("Possible solutions: use proxy, add more realistic headers, or try different IP")
+                return []
+            elif response.status >= 400:
+                logger.error(f"❌ Betano returned error status: {response.status}")
+                return []
+            
             # Check if we got the splash screen
             title = page.title()
             if "splash" in title.lower():
                 logger.warning("⚠️ Got splash screen, waiting for redirect...")
                 
-                # Wait for URL to change or content to load (max 20 seconds)
+                # Wait for content to appear (max 20 seconds)
                 try:
-                    # Wait for either URL change or content to appear
                     page.wait_for_function(
-                        "document.querySelector('div.tw-flex') !== null || window.location.href !== arguments[0]",
-                        BETANO_URL,
+                        "document.querySelector('div.tw-flex') !== null",
                         timeout=20000
                     )
-                    logger.info("✅ Page changed or content loaded!")
+                    logger.info("✅ Content appeared after splash!")
                 except TimeoutError:
-                    logger.error("❌ Splash screen timeout - no redirect happened")
+                    logger.error("❌ Splash screen timeout - no content loaded")
                     return []
             
             # Wait for content to load
