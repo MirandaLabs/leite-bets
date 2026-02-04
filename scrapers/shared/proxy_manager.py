@@ -26,17 +26,24 @@ class ProxyManager:
         """
         proxies = []
         
+        logger.info("🔍 Tentando carregar proxies das variáveis de ambiente...")
+        
         # Carregar IPs do .env (IP_1 até IP_10)
         for i in range(1, 11):
             ip = os.getenv(f"IP_{i}")
             if ip:
+                # Remove espaços e quebras de linha
+                ip = ip.strip()
                 proxies.append(ip)
+                logger.info(f"✅ IP_{i} carregado: {ip[:20]}{'...' if len(ip) > 20 else ''}")
+            else:
+                logger.debug(f"❌ IP_{i} não encontrado")
         
         if not proxies:
             logger.warning("⚠️  Nenhum proxy encontrado no .env - scrapers rodarão sem proxy")
             return []
         
-        logger.info(f"✅ {len(proxies)} proxies carregados: {', '.join(proxies[:3])}{'...' if len(proxies) > 3 else ''}")
+        logger.info(f"✅ Total: {len(proxies)} proxies carregados")
         return proxies
     
     def get_random_proxy(self, scraper_name: str = None) -> Optional[str]:
