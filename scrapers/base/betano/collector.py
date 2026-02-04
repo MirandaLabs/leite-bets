@@ -1,5 +1,7 @@
 from playwright.sync_api import sync_playwright, TimeoutError
 import logging
+import time
+import random
 from scrapers.base.betano.parser import parse_matchresult
 from scrapers.shared.errors import ScraperError
 from scrapers.shared.browser import get_browser_context
@@ -21,14 +23,20 @@ def collect():
         try:
             logger.info(f"Opening Betano URL: {BETANO_URL}")
             
+            # Random delay to simulate human behavior (1-3 seconds)
+            delay = random.uniform(1.0, 3.0)
+            logger.info(f"⏱️  Aguardando {delay:.1f}s (comportamento humano)")
+            time.sleep(delay)
+            
             # Initial navigation
             response = page.goto(BETANO_URL, timeout=60000, wait_until="networkidle")
             logger.info(f"Initial load complete, status: {response.status}")
             
             # Check for blocking
             if response.status == 403:
-                logger.error("❌ Betano returned 403 Forbidden - site is blocking us!")
-                logger.error("Possible solutions: use proxy, add more realistic headers, or try different IP")
+                logger.error("❌ Betano returned 403 Forbidden - proxy detectado!")
+                logger.error("💡 Proxies datacenter são facilmente detectados por sites de apostas")
+                logger.error("💡 Considere: proxies residenciais ou aguardar rotação automática")
                 return []
             elif response.status >= 400:
                 logger.error(f"❌ Betano returned error status: {response.status}")

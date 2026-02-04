@@ -4,7 +4,7 @@ from scrapers.shared.proxy_manager import get_proxy_config
 
 def get_browser_context(playwright, user_data_dir="storage/browser", scraper_name=None):
     """
-    Cria contexto do browser com proxy aleatório
+    Cria contexto do browser com proxy aleatório e stealth mode
     
     Args:
         playwright: Instância do Playwright
@@ -18,7 +18,10 @@ def get_browser_context(playwright, user_data_dir="storage/browser", scraper_nam
         headless=True,
         args=[
             "--disable-blink-features=AutomationControlled",
-            "--no-sandbox"
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-web-security",
+            "--disable-features=IsolateOrigins,site-per-process"
         ],
         proxy=proxy_config  # Configurar proxy no browser
     )
@@ -43,8 +46,29 @@ def get_browser_context(playwright, user_data_dir="storage/browser", scraper_nam
             "Sec-Fetch-Mode": "navigate",
             "Sec-Fetch-Site": "none",
             "Sec-Fetch-User": "?1",
-            "Cache-Control": "max-age=0"
+            "Cache-Control": "max-age=0",
+            "sec-ch-ua": '"Not_A Brand";v="8", "Chromium";v="131", "Google Chrome";v="131"',
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": '"Windows"'
         }
     )
+    
+    # Inject scripts to hide automation
+    context.add_init_script("""
+        // Overwrite the `navigator.webdriver` property
+        Object.defineProperty(navigator, 'webdriver', {
+            get: () => undefined
+        });
+        
+        // Overwrite the `plugins` property
+        Object.defineProperty(navigator, 'plugins', {
+            get: () => [1, 2, 3, 4, 5]
+        });
+        
+        // Overwrite the `languages` property
+        Object.defineProperty(navigator, 'languages', {
+            get: () => ['pt-BR', 'pt', 'en-US', 'en']
+        });
+    """)
 
     return browser, context
