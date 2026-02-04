@@ -22,24 +22,26 @@ class ProxyManager:
         
     def _load_proxies(self) -> list[str]:
         """
-        Carrega lista de proxies no formato IP:PORTA das variáveis de ambiente
-        Formato esperado: IP_1=31.59.20.176:6754, IP_2=23.95.150.145:6114, etc.
+        Carrega lista de proxies das variáveis de ambiente
+        Formato esperado: IP_1 + PORT_1, IP_2 + PORT_2, etc.
         """
         proxies = []
         
         logger.info("🔍 Tentando carregar proxies das variáveis de ambiente...")
         
-        # Carregar proxies no formato IP:PORTA das variáveis IP_1, IP_2, etc.
+        # Carregar proxies combinando IP_X com PORT_X
         for i in range(1, 11):  # IP_1 até IP_10
-            proxy = os.getenv(f"IP_{i}")
-            if proxy:
-                proxy = proxy.strip()
-                # Validar formato IP:PORTA
-                if ':' in proxy:
-                    proxies.append(proxy)
-                    logger.info(f"✅ IP_{i} carregado: {proxy}")
-                else:
-                    logger.warning(f"⚠️  IP_{i} inválido (falta porta): {proxy}")
+            ip = os.getenv(f"IP_{i}")
+            port = os.getenv(f"PORT_{i}")
+            
+            if ip and port:
+                ip = ip.strip()
+                port = port.strip()
+                proxy = f"{ip}:{port}"
+                proxies.append(proxy)
+                logger.info(f"✅ IP_{i} + PORT_{i} carregado: {proxy}")
+            elif ip:
+                logger.warning(f"⚠️  IP_{i} encontrado mas PORT_{i} está faltando")
             else:
                 logger.debug(f"❌ IP_{i} não encontrado")
         
