@@ -22,20 +22,24 @@ class ProxyManager:
         
     def _load_proxies(self) -> list[str]:
         """
-        Carrega lista de IPs do .env
+        Carrega lista de proxies no formato IP:PORTA das variáveis de ambiente
+        Formato esperado: IP_1=31.59.20.176:6754, IP_2=23.95.150.145:6114, etc.
         """
         proxies = []
         
         logger.info("🔍 Tentando carregar proxies das variáveis de ambiente...")
         
-        # Carregar IPs do .env (IP_1 até IP_10)
-        for i in range(1, 11):
-            ip = os.getenv(f"IP_{i}")
-            if ip:
-                # Remove espaços e quebras de linha
-                ip = ip.strip()
-                proxies.append(ip)
-                logger.info(f"✅ IP_{i} carregado: {ip[:20]}{'...' if len(ip) > 20 else ''}")
+        # Carregar proxies no formato IP:PORTA das variáveis IP_1, IP_2, etc.
+        for i in range(1, 11):  # IP_1 até IP_10
+            proxy = os.getenv(f"IP_{i}")
+            if proxy:
+                proxy = proxy.strip()
+                # Validar formato IP:PORTA
+                if ':' in proxy:
+                    proxies.append(proxy)
+                    logger.info(f"✅ IP_{i} carregado: {proxy}")
+                else:
+                    logger.warning(f"⚠️  IP_{i} inválido (falta porta): {proxy}")
             else:
                 logger.debug(f"❌ IP_{i} não encontrado")
         
@@ -82,14 +86,12 @@ class ProxyManager:
         Returns:
             Dict com configuração do proxy ou None
         """
-        proxy_ip = self.get_random_proxy(scraper_name)
+        proxy = self.get_random_proxy(scraper_name)
         
-        if not proxy_ip:
+        if not proxy:
             return None
         
-        # Webshare usa porta 80 por padrão
-        proxy_port = os.getenv("PROXY_PORT", "80")
-        
+        # Proxy já vem no formato IP:PORTA
         # Autenticação obrigatória para Webshare
         proxy_user = os.getenv("PROXY_USERNAME")
         proxy_pass = os.getenv("PROXY_PASSWORD")
@@ -98,10 +100,10 @@ class ProxyManager:
             logger.error("❌ PROXY_USERNAME e PROXY_PASSWORD são obrigatórios para Webshare!")
             return None
         
-        logger.info(f"🔀 Usando proxy Webshare: {proxy_ip}:{proxy_port} (user: {proxy_user[:3]}***)")
+        logger.info(f"🔀 Usando proxy Webshare: {proxy} (user: {proxy_user[:3]}***)")
         
         return {
-            "server": f"http://{proxy_ip}:{proxy_port}",
+            "server": f"http://{proxy}",
             "username": proxy_user,
             "password": proxy_pass
         }
