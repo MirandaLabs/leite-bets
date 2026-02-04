@@ -87,14 +87,23 @@ class ProxyManager:
         if not proxy_ip:
             return None
         
-        # Formato esperado pela Webshare
-        # Ajustar porta e credenciais conforme seu plano
-        return {
-            "server": f"http://{proxy_ip}:80",  # Ajustar porta se necessário
-            # Se seus proxies precisam autenticação, adicionar:
-            # "username": os.getenv("PROXY_USERNAME"),
-            # "password": os.getenv("PROXY_PASSWORD")
+        # Porta configurável via variável de ambiente (padrão: 8080)
+        proxy_port = os.getenv("PROXY_PORT", "8080")
+        logger.info(f"🔀 Usando proxy: {proxy_ip}:{proxy_port}")
+        
+        proxy_config = {
+            "server": f"http://{proxy_ip}:{proxy_port}"
         }
+        
+        # Autenticação opcional
+        proxy_user = os.getenv("PROXY_USERNAME")
+        proxy_pass = os.getenv("PROXY_PASSWORD")
+        if proxy_user and proxy_pass:
+            proxy_config["username"] = proxy_user
+            proxy_config["password"] = proxy_pass
+            logger.info(f"🔐 Proxy com autenticação")
+        
+        return proxy_config
     
     def get_used_proxy(self, scraper_name: str) -> Optional[str]:
         """
