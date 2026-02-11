@@ -1,5 +1,6 @@
 from playwright.sync_api import sync_playwright, TimeoutError
 import logging
+from scrapers.shared.browser import get_browser_context
 
 MAX_RETRIES = 3
 logger = logging.getLogger(__name__)

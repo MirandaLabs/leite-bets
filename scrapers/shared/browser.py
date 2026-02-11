@@ -28,8 +28,12 @@ def get_browser_context(playwright, scraper_name=None):
         "timeout": 180000  # 3 minutos
     }
     
-    # Obtém configuração do proxy
-    proxy_config = proxy_manager.get_proxy_config()
+ # 1. Pega proxy
+    proxy_url = proxy_manager.get_random_proxy()
+    
+    proxy_config = None
+    if proxy_url:
+        proxy_config = {"server": proxy_url}
     
     if proxy_config:
         logger.info(f"🎯 Usando proxy: {proxy_config['server']}")
