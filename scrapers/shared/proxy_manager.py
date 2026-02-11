@@ -1,34 +1,28 @@
 import os
-import random
 import logging
 
 logger = logging.getLogger(__name__)
 
 class ProxyManager:
-    """Gerenciador de Proxy Residencial com Sticky Sessions (Sessão Fixa)"""
+    """Gerenciador de Proxy Oficial (Webshare Residential / Backbone)"""
     
     def __init__(self):
-        # O usuário limpo, sem -rotate e sem -BR-
         self.user = os.getenv("WEBSHARE_USERNAME") 
         self.password = os.getenv("WEBSHARE_PASSWORD")
+        # Por padrão, a Webshare usa proxy.webshare.io ou p.webshare.io
         self.host = os.getenv("WEBSHARE_HOST", "p.webshare.io")
         self.port = os.getenv("WEBSHARE_PORT", "80")
 
     def get_random_proxy(self):
-        """Sorteia um ID de Sessão para manter o mesmo IP durante o carregamento da página."""
+        """Retorna o endpoint da Webshare sem injetar sufixos dinâmicos."""
         if not all([self.user, self.password]):
             logger.warning("⚠️ Variáveis de proxy ausentes! Rodando sem proxy.")
             return None
         
-        # Sorteia um número de 1 a 100.000 para forçar a Webshare a dar um IP residencial novo
-        session_id = random.randint(1, 1000)
-        
-        # Monta o usuário (Exemplo: zecdovnb-8452)
-        user_with_session = f"{self.user}-{session_id}"
-        
-        proxy_url = f"http://{user_with_session}:{self.password}@{self.host}:{self.port}"
+        # Usa estritamente o usuário configurado na nuvem
+        proxy_url = f"http://{self.user}:{self.password}@{self.host}:{self.port}"
         
         safe_log = proxy_url.replace(self.password, "***")
-        logger.info(f"🕵️ Usando IP Residencial Fixo (Sessão {session_id}): {safe_log}")
+        logger.info(f"🕵️ Usando Proxy Residencial (Webshare Endpoint): {safe_log}")
         
         return proxy_url
