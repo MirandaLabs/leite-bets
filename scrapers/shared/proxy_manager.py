@@ -21,7 +21,7 @@ class ProxyManager:
             return None
         
         # Sorteia um número de 1 a 100.000 para forçar a Webshare a dar um IP residencial novo
-        session_id = random.randint(1, 100000)
+        session_id = random.randint(1, 1000)
         
         # Monta o usuário (Exemplo: zecdovnb-8452)
         user_with_session = f"{self.user}-{session_id}"
