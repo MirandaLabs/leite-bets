@@ -1,5 +1,10 @@
 from playwright.sync_api import sync_playwright, TimeoutError
 
+MAX_RETRIES = 3
+logger = logging.getLogger(__name__)
+
+SUPERBET_URL = "https://superbet.bet.br/apostas/futebol/brasil/brasileiro-serie-a/todos?cpi=4ivzYkpyZ0KYH5vHOJ6qVP&ct=m"
+
 def collect():
     """Collect match odds from Superbet"""
     
