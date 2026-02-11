@@ -1,78 +1,75 @@
 def collect():
-    """Collect match odds from Superbet using Playwright with proxy rotation and auto-retry."""
+    """Collect match odds from Superbet"""
     
     with sync_playwright() as p:
-        # Loop de tentativas
         for attempt in range(1, MAX_RETRIES + 1):
-            logger.info(f"🔄 Tentativa {attempt}/{MAX_RETRIES} para Superbet...")
+            logger.info(f"🔄 Tentativa {attempt}/{MAX_RETRIES}")
             
             try:
-                browser, context = get_browser_context(p, scraper_name="superbet")
+                browser, context = get_browser_context(p)
                 page = context.new_page()
                 
-                # Configura timeout maior
-                page.set_default_timeout(120000)
+                # Configura timeout
+                page.set_default_timeout(90000)  # 90 segundos
+                page.set_default_navigation_timeout(90000)
                 
-                logger.info(f"Abrindo Superbet: {SUPERBET_URL}")
+                logger.info(f"Navegando para: {SUPERBET_URL}")
                 
-                # Navega com timeout maior e sem esperar carregamento completo
-                response = page.goto(
-                    SUPERBET_URL, 
-                    timeout=120000,
-                    wait_until="commit"  # Apenas espera o commit, não o carregamento completo
-                )
+                # Tenta navegar com estratégia de fallback
+                try:
+                    response = page.goto(
+                        SUPERBET_URL,
+                        timeout=90000,
+                        wait_until="domcontentloaded"
+                    )
+                    
+                    if response and response.status != 200:
+                        logger.error(f"❌ Status HTTP: {response.status}")
+                        raise ValueError(f"Status {response.status}")
+                        
+                except Exception as nav_error:
+                    logger.warning(f"⚠️ Erro na navegação: {nav_error}")
+                    # Tenta recarregar
+                    page.reload(timeout=90000, wait_until="domcontentloaded")
                 
-                if not response or response.status >= 400:
-                    logger.error(f"❌ Erro HTTP: {response.status if response else 'Sem resposta'}")
-                    raise ValueError(f"Erro na resposta: {response.status}")
+                # Aguarda um tempo para carregar
+                page.wait_for_timeout(5000)
                 
-                # Aguarda um tempo para o conteúdo carregar
-                page.wait_for_timeout(10000)  # 10 segundos
+                # Verifica se carregou
+                content = page.content()
+                logger.info(f"📄 Conteúdo carregado: {len(content)} bytes")
                 
-                # Verifica se temos conteúdo
-                html = page.content()
-                logger.info(f"HTML obtido: {len(html)} bytes")
+                if len(content) < 5000:
+                    raise ValueError("Conteúdo insuficiente")
                 
-                if len(html) < 10000:  # Aumentei o limite mínimo
-                    logger.warning("⚠️ HTML muito pequeno, possível bloqueio")
-                    raise ValueError("HTML insuficiente")
-                
-                # Tenta localizar elementos chave
+                # Tenta encontrar elementos
                 try:
                     page.wait_for_selector("div.event-card", timeout=30000)
                 except:
-                    # Tenta alternativa
+                    # Tenta seletor alternativo
                     page.wait_for_selector("div[class*='event']", timeout=30000)
                 
-                # Tira screenshot para debug
-                try:
-                    os.makedirs("storage/debug", exist_ok=True)
-                    page.screenshot(path=f"storage/debug/superbet_attempt_{attempt}.png")
-                except:
-                    pass
-                
-                # Extrai dados
-                final_html = page.content()
-                matches = parse_matchresult_from_main_page(final_html)
+                # Processa dados
+                matches = parse_matchresult_from_main_page(content)
                 
                 if matches:
-                    logger.info(f"✅ Sucesso! Coletados {len(matches)} jogos")
+                    logger.info(f"✅ Sucesso! {len(matches)} jogos coletados")
                     browser.close()
                     return matches
                 else:
-                    raise ValueError("Nenhum jogo coletado")
+                    raise ValueError("Nenhum dado coletado")
                     
             except Exception as e:
                 logger.error(f"❌ Erro na tentativa {attempt}: {str(e)}")
                 
-                # Fecha o browser se existir
+                # Fecha browser se existir
                 try:
                     browser.close()
                 except:
                     pass
                 
                 if attempt == MAX_RETRIES:
-                    raise ScraperError(f"Falha na Superbet após {MAX_RETRIES} tentativas")
+                    raise ScraperError(f"Falha após {MAX_RETRIES} tentativas")
                 
-                logger.info(f"Aguardando 5 segundos antes da próxima tentativa...")
-                time.sleep(5)
+                logger.info(f"⏱️ Aguardando 3 segundos...")
+                time.sleep(3)
