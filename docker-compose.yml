@@ -1,117 +1,44 @@
+version: '3.8'
+
 services:
-  scraper:
-    build:
+  # O Scraper roda localmente na sua máquina
+  scraper-local:
+    build: 
       context: .
       dockerfile: scrapers/dockerfile
-    container_name: scraper
-    env_file:
-      - .env
-    ports:
-      - "8001:8000"
+    container_name: leite-bets-local-scraper
     restart: unless-stopped
-    volumes:
-      - ./storage:/app/storage
-      - ./scrapers:/app/scrapers
-    networks:
-      - betting-network
-    environment:
-      # Local testing: use local API
-      # - API_URL=http://api:8000/api/odds/scraper
-      # Hybrid mode: uncomment to send to Railway backend
-      - API_URL=https://leite-bets-production.up.railway.app/api/odds/scraper
-      - DISABLE_PROXY=true
-      - PYTHONUNBUFFERED=1
-
-  n8n:
-    image: n8nio/n8n:2.4.6
-    container_name: n8n
-    ports:
-      - "5678:5678"
-    environment:
-      - N8N_BASIC_AUTH_ACTIVE=true
-      - N8N_HOST=localhost
-      - N8N_PORT=5678
-      - WEBHOOK_URL=https://true-breads-dream.loca.lt
-      - GENERIC_TIMEZONE=America/Sao_Paulo
-      - EXECUTIONS_DATA_SAVE_ON_ERROR=true
-      - EXECUTIONS_DATA_SAVE_ON_SUCCESS=true
-      - EXECUTIONS_PRUNE=true
-      - EXECUTIONS_PRUNE_MAX_COUNT=1000
-
-    volumes:
-      - n8n_data:/home/node/.n8n
-    depends_on:
-      - scraper
-      - api
-    networks:
-      - betting-network
-
-  postgres:
-    image: postgres:16-alpine
-    container_name: betting-bot-db
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres123
-      POSTGRES_DB: betting_bot
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
-    networks:
-      - betting-network
-
-  api:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: betting-bot-api
-    environment:
-      DATABASE_URL: postgresql+psycopg://postgres:postgres123@postgres:5432/betting_bot
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
-      PYTHONUNBUFFERED: 1
     ports:
       - "8000:8000"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-    volumes:
-      - ./backend:/app
-    restart: unless-stopped
-    networks:
-      - betting-network
-
-  bot:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: betting-bot-telegram
+    env_file:
+      - .env.local
     environment:
-      DATABASE_URL: postgresql+psycopg://postgres:postgres123@postgres:5432/betting_bot
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
-      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
-    depends_on:
-      - api
-    entrypoint: ["./entrypoint-bot.sh"]
-    command: python telegram_bot_auto.py
+      - PORT=8000
     volumes:
-      - ./backend:/app
+      # Mapeia as pastas locais para dentro do container
+      # Isso permite que você edite o código e veja a mudança sem rebuildar (ótimo para dev)
+      - ./scrapers:/app/scrapers
+      - ./storage:/app/storage
+
+  # O n8n roda localmente para orquestrar
+  n8n-local:
+    image: n8nio/n8n:latest
+    container_name: leite-bets-local-n8n
     restart: unless-stopped
-    networks:
-      - betting-network
+    ports:
+      - "5679:5678" # Roda na porta 5679 para não conflitar com nada
+    env_file:
+      - .env.local
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://localhost:5679
+      - GENERIC_TIMEZONE=America/Sao_Paulo
+      # Permite chamar o scraper-local
+      - N8N_ENV_WHITELIST=REMOTE_API_URL,DATABASE_URL
+    volumes:
+      - n8n_local_data:/home/node/.n8n
 
 volumes:
-  postgres_data:
-  n8n_data:
-
-networks:
-  betting-network:
-    driver: bridge
-  
-  
+  n8n_local_data:

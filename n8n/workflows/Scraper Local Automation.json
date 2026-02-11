@@ -1,0 +1,271 @@
+{
+  "name": "Scraper Local - Leite Bets",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10-21/2 * * *"
+            }
+          ]
+        }
+      },
+      "id": "aa11bbcc-2211-4433-8899-aabbccddeeff",
+      "name": "Schedule Trigger Local",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -880,
+        240
+      ],
+      "notes": "Executa a cada 2 horas entre 10h e 21h (horário local)"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://scraper-local:8000/api/trigger/local",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -656,
+        240
+      ],
+      "id": "bb22ccdd-3322-5544-9900-bbccddeeff00",
+      "name": "Run Local Scrapers",
+      "notes": "Chama API local que executa scrapers sem proxy (timeout 3min)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Processa resposta da API local\nconst response = $input.first().json;\nconst scrapers = response.scrapers || {};\n\n// Conta sucessos e falhas\nlet totalScrapers = 0;\nlet sucessos = 0;\nlet falhas = 0;\nlet warnings = 0;\nlet detalhes = [];\n\nObject.keys(scrapers).forEach(scraper => {\n  totalScrapers++;\n  const resultado = scrapers[scraper];\n  \n  if (resultado.status === 'success') {\n    sucessos++;\n    detalhes.push(`✅ ${scraper}: ${resultado.items || 0} jogos`);\n  } else if (resultado.status === 'warning') {\n    warnings++;\n    detalhes.push(`⚠️ ${scraper}: ${resultado.message || 'Sem dados'}`);\n  } else {\n    falhas++;\n    const erro = resultado.message || 'Erro desconhecido';\n    detalhes.push(`❌ ${scraper}: ${erro.substring(0, 50)}...`);\n  }\n});\n\n// Formata mensagem\nconst timestamp = new Date(response.triggered_at).toLocaleString('pt-BR', {\n  timeZone: 'America/Sao_Paulo'\n});\nconst emoji = sucessos === totalScrapers ? '🎉' : (sucessos > 0 ? '⚠️' : '🔴');\n\nconst mensagem = `${emoji} *Scraper Local - ${timestamp}*\\n\\n` +\n  `📊 *Resumo:*\\n` +\n  `• Total: ${totalScrapers} casas\\n` +\n  `• Sucessos: ${sucessos}\\n` +\n  `• Avisos: ${warnings}\\n` +\n  `• Falhas: ${falhas}\\n` +\n  `• Jogos coletados: ${response.total_items || 0}\\n\\n` +\n  `📝 *Detalhes:*\\n${detalhes.join('\\n')}\\n\\n` +\n  `_Próxima execução em 2 horas_`;\n\nreturn {\n  json: {\n    mensagem,\n    sucessos,\n    falhas,\n    warnings,\n    totalScrapers,\n    totalJogos: response.total_items || 0,\n    timestamp: response.triggered_at\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        240
+      ],
+      "id": "cc33ddee-4433-6655-aa11-ccddeeff1122",
+      "name": "Process Results",
+      "notes": "Processa resposta da API e formata mensagem"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "11223344-5566-7788-9900-aabbccddeeff",
+              "leftValue": "={{ $json.totalJogos }}",
+              "rightValue": "0",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        240
+      ],
+      "id": "dd44eeff-5566-8877-bb22-ddeeff223344",
+      "name": "Has Data?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "22334455-6677-8899-aa00-bbccddeeaabb",
+              "name": "notification",
+              "value": "={{ $json.mensagem }}",
+              "type": "string"
+            },
+            {
+              "id": "33445566-7788-99aa-bb11-ccddeeff2233",
+              "name": "summary",
+              "value": "={{ $json.totalJogos }} jogos coletados com sucesso",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        -32,
+        140
+      ],
+      "id": "ee55ff66-7788-99aa-cc22-eeffaabb3344",
+      "name": "Success Message"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "44556677-8899-aabb-cc22-ddeeffaa4455",
+              "name": "notification",
+              "value": "={{ $json.mensagem }}",
+              "type": "string"
+            },
+            {
+              "id": "55667788-99aa-bbcc-dd33-eeffaabb5566",
+              "name": "summary",
+              "value": "Nenhum dado coletado - verifique os logs",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [
+        -32,
+        340
+      ],
+      "id": "ff66aa77-8899-aabb-dd44-ffaabbcc6677",
+      "name": "Warning Message"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combinationMode": "mergeByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        176,
+        240
+      ],
+      "id": "aa77bb88-99aa-bbcc-ee55-aabbccdd7788",
+      "name": "Merge Results"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger Local": {
+      "main": [
+        [
+          {
+            "node": "Run Local Scrapers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Local Scrapers": {
+      "main": [
+        [
+          {
+            "node": "Process Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Results": {
+      "main": [
+        [
+          {
+            "node": "Has Data?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has Data?": {
+      "main": [
+        [
+          {
+            "node": "Success Message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Warning Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success Message": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Warning Message": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "versionId": "local-v1.0.0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "local-instance"
+  },
+  "id": "local_scraper_automation",
+  "tags": [
+    {
+      "name": "local",
+      "id": "local-tag-1"
+    },
+    {
+      "name": "scraper",
+      "id": "local-tag-2"
+    },
+    {
+      "name": "development",
+      "id": "local-tag-3"
+    }
+  ]
+}

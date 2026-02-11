@@ -1,0 +1,126 @@
+{
+  "name": "Scraper Local Manual - Leite Bets",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger-001",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -880,
+        240
+      ],
+      "notes": "Clique aqui para executar manualmente"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://scraper-local:8000/api/trigger/local",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 180000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        -656,
+        240
+      ],
+      "id": "execute-local-001",
+      "name": "Run Local Scrapers",
+      "notes": "Chama API local (sem proxy) via HTTP"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Processa resposta da API local\nconst data = $input.first().json;\nconst scrapers = data.scrapers || {};\n\n// Extrai dados dos scrapers\nlet casas = [];\nlet totalJogos = data.total_items || 0;\n\nObject.keys(scrapers).forEach(casa => {\n  const resultado = scrapers[casa];\n  let status = '❌';\n  let jogos = 0;\n  \n  if (resultado.status === 'success') {\n    status = '✅';\n    jogos = resultado.items || 0;\n  } else if (resultado.status === 'warning') {\n    status = '⚠️';\n    jogos = 0;\n  }\n  \n  casas.push({ nome: casa, jogos, status });\n});\n\n// Formata timestamp\nconst timestamp = new Date(data.triggered_at).toLocaleString('pt-BR', {\n  timeZone: 'America/Sao_Paulo'\n});\n\nreturn {\n  json: {\n    timestamp,\n    totalJogos,\n    casas,\n    environment: data.environment,\n    status: data.status,\n    success: totalJogos > 0\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        240
+      ],
+      "id": "process-results-001",
+      "name": "Process Results",
+      "notes": "Extrai dados da resposta JSON"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconst emoji = data.success ? '🎉' : (data.totalJogos > 0 ? '⚠️' : '❌');\n\nlet mensagem = `${emoji} *Coleta Local Finalizada*\\n\\n`;\nmensagem += `🕐 *Horário:* ${data.timestamp}\\n\\n`;\nmensagem += `📊 *Resumo:*\\n`;\nmensagem += `• Total: ${data.totalJogos} jogos\\n`;\nmensagem += `• Exit Code: ${data.exitCode}\\n\\n`;\n\nif (data.casas && data.casas.length > 0) {\n  mensagem += `📝 *Por Casa:*\\n`;\n  data.casas.forEach(casa => {\n    mensagem += `${casa.status} ${casa.nome}: ${casa.jogos} jogos\\n`;\n  });\n}\n\nreturn {\n  json: {\n    ...data,\n    mensagemFormatada: mensagem\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -240,
+        240
+      ],
+      "id": "format-message-001",
+      "name": "Format Message"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Run Local Scrapers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run Local Scrapers": {
+      "main": [
+        [
+          {
+            "node": "Process Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Results": {
+      "main": [
+        [
+          {
+            "node": "Format Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "manual-v1.0.0",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "id": "local_scraper_manual",
+  "tags": [
+    {
+      "name": "local",
+      "id": "local-manual-tag-1"
+    },
+    {
+      "name": "manual",
+      "id": "local-manual-tag-2"
+    },
+    {
+      "name": "scraper",
+      "id": "local-manual-tag-3"
+    }
+  ]
+}

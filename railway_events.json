@@ -1,0 +1,386 @@
+﻿{
+    "events":  [
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_chapecoense_coritiba",
+                       "homeTeam":  "Chapecoense",
+                       "awayTeam":  "Coritiba",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T18:51:24.720297",
+                       "odds":  {
+                                    "betano":  {
+                                                   "homeOdd":  null,
+                                                   "drawOdd":  null,
+                                                   "awayOdd":  null,
+                                                   "homeOrDrawOdd":  1.37,
+                                                   "awayOrDrawOdd":  1.6
+                                               },
+                                    "superbet":  {
+                                                     "homeOdd":  2.45,
+                                                     "drawOdd":  3.05,
+                                                     "awayOdd":  3.3,
+                                                     "homeOrDrawOdd":  null,
+                                                     "awayOrDrawOdd":  null
+                                                 }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_mirassol_cruzeiro",
+                       "homeTeam":  "Mirassol",
+                       "awayTeam":  "Cruzeiro",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T18:51:24.736279",
+                       "odds":  {
+                                    "betano":  {
+                                                   "homeOdd":  null,
+                                                   "drawOdd":  null,
+                                                   "awayOdd":  null,
+                                                   "homeOrDrawOdd":  1.47,
+                                                   "awayOrDrawOdd":  1.47
+                                               }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_atlÃ©tico-mg_remo",
+                       "homeTeam":  "AtlÃ©tico-MG",
+                       "awayTeam":  "Remo",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T18:51:24.743402",
+                       "odds":  {
+                                    "betano":  {
+                                                   "homeOdd":  null,
+                                                   "drawOdd":  null,
+                                                   "awayOdd":  null,
+                                                   "homeOrDrawOdd":  1.11,
+                                                   "awayOrDrawOdd":  2.85
+                                               }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_vasco_da_gama_bahia",
+                       "homeTeam":  "Vasco da Gama",
+                       "awayTeam":  "Bahia",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T18:51:24.750099",
+                       "odds":  {
+                                    "betano":  {
+                                                   "homeOdd":  null,
+                                                   "drawOdd":  null,
+                                                   "awayOdd":  null,
+                                                   "homeOrDrawOdd":  1.37,
+                                                   "awayOrDrawOdd":  1.65
+                                               },
+                                    "superbet":  {
+                                                     "homeOdd":  2.27,
+                                                     "drawOdd":  3.3,
+                                                     "awayOdd":  3.35,
+                                                     "homeOrDrawOdd":  null,
+                                                     "awayOrDrawOdd":  null
+                                                 }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_sÃ£o_paulo_grÃªmio",
+                       "homeTeam":  "SÃ£o Paulo",
+                       "awayTeam":  "GrÃªmio",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T18:51:24.756389",
+                       "odds":  {
+                                    "betano":  {
+                                                   "homeOdd":  null,
+                                                   "drawOdd":  null,
+                                                   "awayOdd":  null,
+                                                   "homeOrDrawOdd":  1.23,
+                                                   "awayOrDrawOdd":  1.88
+                                               }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_athletico-pr_santos",
+                       "homeTeam":  "Athletico-PR",
+                       "awayTeam":  "Santos",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T18:51:24.763738",
+                       "odds":  {
+                                    "betano":  {
+                                                   "homeOdd":  null,
+                                                   "drawOdd":  null,
+                                                   "awayOdd":  null,
+                                                   "homeOrDrawOdd":  1.32,
+                                                   "awayOrDrawOdd":  1.7
+                                               }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_fluminense_botafogo-rj",
+                       "homeTeam":  "Fluminense",
+                       "awayTeam":  "Botafogo-RJ",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T18:51:24.772279",
+                       "odds":  {
+                                    "betano":  {
+                                                   "homeOdd":  null,
+                                                   "drawOdd":  null,
+                                                   "awayOdd":  null,
+                                                   "homeOrDrawOdd":  1.29,
+                                                   "awayOrDrawOdd":  1.72
+                                               }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_corinthians_bragantino",
+                       "homeTeam":  "Corinthians",
+                       "awayTeam":  "Bragantino",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T18:51:24.779453",
+                       "odds":  {
+                                    "betano":  {
+                                                   "homeOdd":  null,
+                                                   "drawOdd":  null,
+                                                   "awayOdd":  null,
+                                                   "homeOrDrawOdd":  1.26,
+                                                   "awayOrDrawOdd":  1.78
+                                               }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_internacional_palmeiras",
+                       "homeTeam":  "Internacional",
+                       "awayTeam":  "Palmeiras",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T18:51:24.786510",
+                       "odds":  {
+                                    "betano":  {
+                                                   "homeOdd":  null,
+                                                   "drawOdd":  null,
+                                                   "awayOdd":  null,
+                                                   "homeOrDrawOdd":  1.57,
+                                                   "awayOrDrawOdd":  1.37
+                                               }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_athletico-pr_corinthians",
+                       "homeTeam":  "Athletico-PR",
+                       "awayTeam":  "Corinthians",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T18:51:24.793309",
+                       "odds":  {
+                                    "betano":  {
+                                                   "homeOdd":  null,
+                                                   "drawOdd":  null,
+                                                   "awayOdd":  null,
+                                                   "homeOrDrawOdd":  1.42,
+                                                   "awayOrDrawOdd":  1.5
+                                               }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_mirassol_cruzeiro_mg",
+                       "homeTeam":  "Mirassol",
+                       "awayTeam":  "Cruzeiro MG",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T19:01:04.508996",
+                       "odds":  {
+                                    "superbet":  {
+                                                     "homeOdd":  2.85,
+                                                     "drawOdd":  3.1,
+                                                     "awayOdd":  2.75,
+                                                     "homeOrDrawOdd":  null,
+                                                     "awayOrDrawOdd":  null
+                                                 }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_atlÃ©tico_mg_remo",
+                       "homeTeam":  "AtlÃ©tico MG",
+                       "awayTeam":  "Remo",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T19:01:04.526412",
+                       "odds":  {
+                                    "superbet":  {
+                                                     "homeOdd":  1.44,
+                                                     "drawOdd":  4.55,
+                                                     "awayOdd":  7.9,
+                                                     "homeOrDrawOdd":  null,
+                                                     "awayOrDrawOdd":  null
+                                                 }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_sÃ£o_paulo_grÃªmio_rs",
+                       "homeTeam":  "SÃ£o Paulo",
+                       "awayTeam":  "GrÃªmio RS",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T19:01:04.545816",
+                       "odds":  {
+                                    "superbet":  {
+                                                     "homeOdd":  1.97,
+                                                     "drawOdd":  3.25,
+                                                     "awayOdd":  4.5,
+                                                     "homeOrDrawOdd":  null,
+                                                     "awayOrDrawOdd":  null
+                                                 }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_athletico_pr_santos",
+                       "homeTeam":  "Athletico PR",
+                       "awayTeam":  "Santos",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T19:01:04.556813",
+                       "odds":  {
+                                    "superbet":  {
+                                                     "homeOdd":  2.25,
+                                                     "drawOdd":  3.05,
+                                                     "awayOdd":  3.65,
+                                                     "homeOrDrawOdd":  null,
+                                                     "awayOrDrawOdd":  null
+                                                 }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_fluminense_botafogo_rj",
+                       "homeTeam":  "Fluminense",
+                       "awayTeam":  "Botafogo RJ",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T19:01:04.569781",
+                       "odds":  {
+                                    "superbet":  {
+                                                     "homeOdd":  2.15,
+                                                     "drawOdd":  3.0,
+                                                     "awayOdd":  3.9,
+                                                     "homeOrDrawOdd":  null,
+                                                     "awayOrDrawOdd":  null
+                                                 }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_corinthians_rb_bragantino",
+                       "homeTeam":  "Corinthians",
+                       "awayTeam":  "RB Bragantino",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T19:01:04.582080",
+                       "odds":  {
+                                    "superbet":  {
+                                                     "homeOdd":  2.1,
+                                                     "drawOdd":  3.1,
+                                                     "awayOdd":  4.0,
+                                                     "homeOrDrawOdd":  null,
+                                                     "awayOrDrawOdd":  null
+                                                 }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_internacional_rs_palmeiras",
+                       "homeTeam":  "Internacional RS",
+                       "awayTeam":  "Palmeiras",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T19:01:04.590883",
+                       "odds":  {
+                                    "superbet":  {
+                                                     "homeOdd":  3.25,
+                                                     "drawOdd":  3.0,
+                                                     "awayOdd":  2.42,
+                                                     "homeOrDrawOdd":  null,
+                                                     "awayOrDrawOdd":  null
+                                                 }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_brasileirao-serie-a_athletico_pr_corinthians",
+                       "homeTeam":  "Athletico PR",
+                       "awayTeam":  "Corinthians",
+                       "league":  "brasileirao-serie-a",
+                       "eventDate":  "2026-02-11T19:01:04.599762",
+                       "odds":  {
+                                    "superbet":  {
+                                                     "homeOdd":  2.6,
+                                                     "drawOdd":  2.85,
+                                                     "awayOdd":  2.9,
+                                                     "homeOrDrawOdd":  null,
+                                                     "awayOrDrawOdd":  null
+                                                 }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_BrasileirÃ£o SÃ©rie A_mirassol_cruzeiro",
+                       "homeTeam":  "Mirassol",
+                       "awayTeam":  "Cruzeiro",
+                       "league":  "BrasileirÃ£o SÃ©rie A",
+                       "eventDate":  "2026-02-11T21:06:24.483401",
+                       "odds":  {
+                                    "esportesdasorte":  {
+                                                            "homeOdd":  null,
+                                                            "drawOdd":  null,
+                                                            "awayOdd":  null,
+                                                            "homeOrDrawOdd":  null,
+                                                            "awayOrDrawOdd":  null
+                                                        }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_BrasileirÃ£o SÃ©rie A_chapecoense_coritiba",
+                       "homeTeam":  "Chapecoense",
+                       "awayTeam":  "Coritiba",
+                       "league":  "BrasileirÃ£o SÃ©rie A",
+                       "eventDate":  "2026-02-11T21:06:24.493831",
+                       "odds":  {
+                                    "esportesdasorte":  {
+                                                            "homeOdd":  null,
+                                                            "drawOdd":  null,
+                                                            "awayOdd":  null,
+                                                            "homeOrDrawOdd":  null,
+                                                            "awayOrDrawOdd":  null
+                                                        }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_BrasileirÃ£o SÃ©rie A_atlÃ©tico_mg_remo",
+                       "homeTeam":  "AtlÃ©tico MG",
+                       "awayTeam":  "Remo",
+                       "league":  "BrasileirÃ£o SÃ©rie A",
+                       "eventDate":  "2026-02-11T21:06:24.501990",
+                       "odds":  {
+                                    "esportesdasorte":  {
+                                                            "homeOdd":  null,
+                                                            "drawOdd":  null,
+                                                            "awayOdd":  null,
+                                                            "homeOrDrawOdd":  null,
+                                                            "awayOrDrawOdd":  null
+                                                        }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_BrasileirÃ£o SÃ©rie A_vasco_da_gama_bahia",
+                       "homeTeam":  "Vasco da Gama",
+                       "awayTeam":  "Bahia",
+                       "league":  "BrasileirÃ£o SÃ©rie A",
+                       "eventDate":  "2026-02-11T21:06:24.509891",
+                       "odds":  {
+                                    "esportesdasorte":  {
+                                                            "homeOdd":  null,
+                                                            "drawOdd":  null,
+                                                            "awayOdd":  null,
+                                                            "homeOrDrawOdd":  null,
+                                                            "awayOrDrawOdd":  null
+                                                        }
+                                }
+                   },
+                   {
+                       "eventId":  "evt_BrasileirÃ£o SÃ©rie A_sÃ£o_paulo_grÃªmio",
+                       "homeTeam":  "SÃ£o Paulo",
+                       "awayTeam":  "GrÃªmio",
+                       "league":  "BrasileirÃ£o SÃ©rie A",
+                       "eventDate":  "2026-02-11T21:06:24.516951",
+                       "odds":  {
+                                    "esportesdasorte":  {
+                                                            "homeOdd":  null,
+                                                            "drawOdd":  null,
+                                                            "awayOdd":  null,
+                                                            "homeOrDrawOdd":  null,
+                                                            "awayOrDrawOdd":  null
+                                                        }
+                                }
+                   }
+               ]
+}

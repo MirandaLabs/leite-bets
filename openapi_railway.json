@@ -1,0 +1,432 @@
+﻿{
+    "openapi":  "3.1.0",
+    "info":  {
+                 "title":  "Betting Bot API",
+                 "description":  "API para arbitragem de apostas",
+                 "version":  "1.0.0"
+             },
+    "paths":  {
+                  "/":  {
+                            "get":  {
+                                        "summary":  "Read Root",
+                                        "operationId":  "read_root__get",
+                                        "responses":  {
+                                                          "200":  {
+                                                                      "description":  "Successful Response",
+                                                                      "content":  "@{application/json=}"
+                                                                  }
+                                                      }
+                                    }
+                        },
+                  "/health":  {
+                                  "get":  {
+                                              "summary":  "Health Check",
+                                              "operationId":  "health_check_health_get",
+                                              "responses":  {
+                                                                "200":  {
+                                                                            "description":  "Successful Response",
+                                                                            "content":  "@{application/json=}"
+                                                                        }
+                                                            }
+                                          }
+                              },
+                  "/api/odds/update":  {
+                                           "post":  {
+                                                        "summary":  "Update Odds",
+                                                        "description":  "Endpoint para o scraper enviar as odds coletadas",
+                                                        "operationId":  "update_odds_api_odds_update_post",
+                                                        "requestBody":  {
+                                                                            "content":  {
+                                                                                            "application/json":  "@{schema=}"
+                                                                                        },
+                                                                            "required":  true
+                                                                        },
+                                                        "responses":  {
+                                                                          "200":  {
+                                                                                      "description":  "Successful Response",
+                                                                                      "content":  "@{application/json=}"
+                                                                                  },
+                                                                          "422":  {
+                                                                                      "description":  "Validation Error",
+                                                                                      "content":  "@{application/json=}"
+                                                                                  }
+                                                                      }
+                                                    }
+                                       },
+                  "/api/odds/scraper":  {
+                                            "post":  {
+                                                         "summary":  "Receive Scraper Odds",
+                                                         "description":  "Endpoint especÃ­fico para receber dados do scraper no formato dele\nProcessa tanto \u00271X2\u0027 quanto \u0027Double Chance\u0027",
+                                                         "operationId":  "receive_scraper_odds_api_odds_scraper_post",
+                                                         "requestBody":  {
+                                                                             "content":  {
+                                                                                             "application/json":  "@{schema=}"
+                                                                                         },
+                                                                             "required":  true
+                                                                         },
+                                                         "responses":  {
+                                                                           "200":  {
+                                                                                       "description":  "Successful Response",
+                                                                                       "content":  "@{application/json=}"
+                                                                                   },
+                                                                           "422":  {
+                                                                                       "description":  "Validation Error",
+                                                                                       "content":  "@{application/json=}"
+                                                                                   }
+                                                                       }
+                                                     }
+                                        },
+                  "/api/events":  {
+                                      "get":  {
+                                                  "summary":  "Get Events",
+                                                  "description":  "Retorna todos os eventos disponÃ­veis com suas odds\nFiltra apenas eventos que nÃ£o estÃ£o finalizados",
+                                                  "operationId":  "get_events_api_events_get",
+                                                  "responses":  {
+                                                                    "200":  {
+                                                                                "description":  "Successful Response",
+                                                                                "content":  "@{application/json=}"
+                                                                            }
+                                                                }
+                                              }
+                                  },
+                  "/api/events/update-status":  {
+                                                    "post":  {
+                                                                 "summary":  "Update Event Statuses",
+                                                                 "description":  "Atualiza o status de todos os eventos baseado no horÃ¡rio atual",
+                                                                 "operationId":  "update_event_statuses_api_events_update_status_post",
+                                                                 "responses":  {
+                                                                                   "200":  {
+                                                                                               "description":  "Successful Response",
+                                                                                               "content":  "@{application/json=}"
+                                                                                           }
+                                                                               }
+                                                             }
+                                                },
+                  "/api/events/cleanup":  {
+                                              "delete":  {
+                                                             "summary":  "Cleanup Finished Events",
+                                                             "description":  "Remove eventos finalizados hÃ¡ mais de X dias",
+                                                             "operationId":  "cleanup_finished_events_api_events_cleanup_delete",
+                                                             "parameters":  [
+                                                                                {
+                                                                                    "name":  "days_old",
+                                                                                    "in":  "query",
+                                                                                    "required":  false,
+                                                                                    "schema":  "@{type=integer; default=7; title=Days Old}"
+                                                                                }
+                                                                            ],
+                                                             "responses":  {
+                                                                               "200":  {
+                                                                                           "description":  "Successful Response",
+                                                                                           "content":  "@{application/json=}"
+                                                                                       },
+                                                                               "422":  {
+                                                                                           "description":  "Validation Error",
+                                                                                           "content":  "@{application/json=}"
+                                                                                       }
+                                                                           }
+                                                         }
+                                          },
+                  "/api/trigger/all":  {
+                                           "post":  {
+                                                        "summary":  "Trigger All Scrapers",
+                                                        "description":  "Endpoint para N8N: Triggera todos os scrapers de uma vez.\nRetorna resultado consolidado.",
+                                                        "operationId":  "trigger_all_scrapers_api_trigger_all_post",
+                                                        "responses":  {
+                                                                          "200":  {
+                                                                                      "description":  "Successful Response",
+                                                                                      "content":  "@{application/json=}"
+                                                                                  }
+                                                                      }
+                                                    }
+                                       },
+                  "/api/trigger/{casa}":  {
+                                              "post":  {
+                                                           "summary":  "Trigger Scraper Casa",
+                                                           "description":  "Endpoint para N8N: Triggera scraper especÃ­fico.\nCasas disponÃ­veis: betano, bet365, superbet, esportesdasorte",
+                                                           "operationId":  "trigger_scraper_casa_api_trigger__casa__post",
+                                                           "parameters":  [
+                                                                              {
+                                                                                  "name":  "casa",
+                                                                                  "in":  "path",
+                                                                                  "required":  true,
+                                                                                  "schema":  "@{type=string; title=Casa}"
+                                                                              }
+                                                                          ],
+                                                           "responses":  {
+                                                                             "200":  {
+                                                                                         "description":  "Successful Response",
+                                                                                         "content":  "@{application/json=}"
+                                                                                     },
+                                                                             "422":  {
+                                                                                         "description":  "Validation Error",
+                                                                                         "content":  "@{application/json=}"
+                                                                                     }
+                                                                         }
+                                                       }
+                                          },
+                  "/api/scraper/status":  {
+                                              "get":  {
+                                                          "summary":  "Scraper Status",
+                                                          "description":  "Endpoint para N8N: Verifica status dos scrapers e sistema.",
+                                                          "operationId":  "scraper_status_api_scraper_status_get",
+                                                          "responses":  {
+                                                                            "200":  {
+                                                                                        "description":  "Successful Response",
+                                                                                        "content":  "@{application/json=}"
+                                                                                    }
+                                                                        }
+                                                      }
+                                          },
+                  "/api/webhook/n8n":  {
+                                           "post":  {
+                                                        "summary":  "Webhook N8N",
+                                                        "description":  "Webhook genÃ©rico para N8N.\nN8N pode enviar qualquer payload e este endpoint processa.",
+                                                        "operationId":  "webhook_n8n_api_webhook_n8n_post",
+                                                        "requestBody":  {
+                                                                            "content":  {
+                                                                                            "application/json":  "@{schema=}"
+                                                                                        }
+                                                                        },
+                                                        "responses":  {
+                                                                          "200":  {
+                                                                                      "description":  "Successful Response",
+                                                                                      "content":  "@{application/json=}"
+                                                                                  },
+                                                                          "422":  {
+                                                                                      "description":  "Validation Error",
+                                                                                      "content":  "@{application/json=}"
+                                                                                  }
+                                                                      }
+                                                    }
+                                       }
+              },
+    "components":  {
+                       "schemas":  {
+                                       "HTTPValidationError":  {
+                                                                   "properties":  {
+                                                                                      "detail":  {
+                                                                                                     "items":  "@{$ref=#/components/schemas/ValidationError}",
+                                                                                                     "type":  "array",
+                                                                                                     "title":  "Detail"
+                                                                                                 }
+                                                                                  },
+                                                                   "type":  "object",
+                                                                   "title":  "HTTPValidationError"
+                                                               },
+                                       "OddsUpdate":  {
+                                                          "properties":  {
+                                                                             "eventId":  {
+                                                                                             "type":  "string",
+                                                                                             "title":  "Eventid"
+                                                                                         },
+                                                                             "sport":  {
+                                                                                           "type":  "string",
+                                                                                           "title":  "Sport"
+                                                                                       },
+                                                                             "league":  {
+                                                                                            "type":  "string",
+                                                                                            "title":  "League"
+                                                                                        },
+                                                                             "homeTeam":  {
+                                                                                              "type":  "string",
+                                                                                              "title":  "Hometeam"
+                                                                                          },
+                                                                             "awayTeam":  {
+                                                                                              "type":  "string",
+                                                                                              "title":  "Awayteam"
+                                                                                          },
+                                                                             "eventDate":  {
+                                                                                               "type":  "string",
+                                                                                               "title":  "Eventdate"
+                                                                                           },
+                                                                             "bookmaker":  {
+                                                                                               "type":  "string",
+                                                                                               "title":  "Bookmaker"
+                                                                                           },
+                                                                             "homeOdd":  {
+                                                                                             "type":  "number",
+                                                                                             "title":  "Homeodd"
+                                                                                         },
+                                                                             "drawOdd":  {
+                                                                                             "anyOf":  " ",
+                                                                                             "title":  "Drawodd"
+                                                                                         },
+                                                                             "awayOdd":  {
+                                                                                             "type":  "number",
+                                                                                             "title":  "Awayodd"
+                                                                                         },
+                                                                             "homeOrDrawOdd":  {
+                                                                                                   "anyOf":  " ",
+                                                                                                   "title":  "Homeordrawodd"
+                                                                                               },
+                                                                             "awayOrDrawOdd":  {
+                                                                                                   "anyOf":  " ",
+                                                                                                   "title":  "Awayordrawodd"
+                                                                                               }
+                                                                         },
+                                                          "type":  "object",
+                                                          "required":  [
+                                                                           "eventId",
+                                                                           "sport",
+                                                                           "league",
+                                                                           "homeTeam",
+                                                                           "awayTeam",
+                                                                           "eventDate",
+                                                                           "bookmaker",
+                                                                           "homeOdd",
+                                                                           "awayOdd"
+                                                                       ],
+                                                          "title":  "OddsUpdate"
+                                                      },
+                                       "ScraperEvent":  {
+                                                            "properties":  {
+                                                                               "id":  {
+                                                                                          "type":  "string",
+                                                                                          "title":  "Id"
+                                                                                      },
+                                                                               "name":  {
+                                                                                            "type":  "string",
+                                                                                            "title":  "Name"
+                                                                                        },
+                                                                               "start_time":  {
+                                                                                                  "anyOf":  " ",
+                                                                                                  "title":  "Start Time"
+                                                                                              },
+                                                                               "status":  {
+                                                                                              "type":  "string",
+                                                                                              "title":  "Status",
+                                                                                              "default":  "upcoming"
+                                                                                          }
+                                                                           },
+                                                            "type":  "object",
+                                                            "required":  [
+                                                                             "id",
+                                                                             "name"
+                                                                         ],
+                                                            "title":  "ScraperEvent"
+                                                        },
+                                       "ScraperMarket":  {
+                                                             "properties":  {
+                                                                                "type":  {
+                                                                                             "type":  "string",
+                                                                                             "title":  "Type"
+                                                                                         },
+                                                                                "name":  {
+                                                                                             "type":  "string",
+                                                                                             "title":  "Name"
+                                                                                         },
+                                                                                "selections":  {
+                                                                                                   "items":  "@{$ref=#/components/schemas/ScraperSelection}",
+                                                                                                   "type":  "array",
+                                                                                                   "title":  "Selections"
+                                                                                               }
+                                                                            },
+                                                             "type":  "object",
+                                                             "required":  [
+                                                                              "type",
+                                                                              "name",
+                                                                              "selections"
+                                                                          ],
+                                                             "title":  "ScraperMarket"
+                                                         },
+                                       "ScraperOddsData":  {
+                                                               "properties":  {
+                                                                                  "source":  {
+                                                                                                 "type":  "string",
+                                                                                                 "title":  "Source"
+                                                                                             },
+                                                                                  "sport":  {
+                                                                                                "type":  "string",
+                                                                                                "title":  "Sport"
+                                                                                            },
+                                                                                  "competition":  {
+                                                                                                      "type":  "string",
+                                                                                                      "title":  "Competition"
+                                                                                                  },
+                                                                                  "event":  {
+                                                                                                "$ref":  "#/components/schemas/ScraperEvent"
+                                                                                            },
+                                                                                  "market":  {
+                                                                                                 "$ref":  "#/components/schemas/ScraperMarket"
+                                                                                             },
+                                                                                  "collected_at":  {
+                                                                                                       "type":  "string",
+                                                                                                       "title":  "Collected At"
+                                                                                                   }
+                                                                              },
+                                                               "type":  "object",
+                                                               "required":  [
+                                                                                "source",
+                                                                                "sport",
+                                                                                "competition",
+                                                                                "event",
+                                                                                "market",
+                                                                                "collected_at"
+                                                                            ],
+                                                               "title":  "ScraperOddsData"
+                                                           },
+                                       "ScraperPayload":  {
+                                                              "properties":  {
+                                                                                 "data":  {
+                                                                                              "items":  "@{$ref=#/components/schemas/ScraperOddsData}",
+                                                                                              "type":  "array",
+                                                                                              "title":  "Data"
+                                                                                          }
+                                                                             },
+                                                              "type":  "object",
+                                                              "required":  [
+                                                                               "data"
+                                                                           ],
+                                                              "title":  "ScraperPayload"
+                                                          },
+                                       "ScraperSelection":  {
+                                                                "properties":  {
+                                                                                   "key":  {
+                                                                                               "type":  "string",
+                                                                                               "title":  "Key"
+                                                                                           },
+                                                                                   "name":  {
+                                                                                                "type":  "string",
+                                                                                                "title":  "Name"
+                                                                                            },
+                                                                                   "odd":  {
+                                                                                               "type":  "number",
+                                                                                               "title":  "Odd"
+                                                                                           }
+                                                                               },
+                                                                "type":  "object",
+                                                                "required":  [
+                                                                                 "key",
+                                                                                 "name",
+                                                                                 "odd"
+                                                                             ],
+                                                                "title":  "ScraperSelection"
+                                                            },
+                                       "ValidationError":  {
+                                                               "properties":  {
+                                                                                  "loc":  {
+                                                                                              "items":  "@{anyOf=System.Object[]}",
+                                                                                              "type":  "array",
+                                                                                              "title":  "Location"
+                                                                                          },
+                                                                                  "msg":  {
+                                                                                              "type":  "string",
+                                                                                              "title":  "Message"
+                                                                                          },
+                                                                                  "type":  {
+                                                                                               "type":  "string",
+                                                                                               "title":  "Error Type"
+                                                                                           }
+                                                                              },
+                                                               "type":  "object",
+                                                               "required":  [
+                                                                                "loc",
+                                                                                "msg",
+                                                                                "type"
+                                                                            ],
+                                                               "title":  "ValidationError"
+                                                           }
+                                   }
+                   }
+}
