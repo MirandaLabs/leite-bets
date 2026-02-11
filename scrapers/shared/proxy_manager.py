@@ -31,7 +31,7 @@ class ProxyManager:
                 return
 
             # Gera a lista de URLs (ex: do 1 ao 20)
-            for i in range(11, proxy_count + 1):
+            for i in range(11, 11 + proxy_count):
                 user = f"{user_prefix}{i}"
                 proxy_url = f"http://{user}:{password}@{host}:{port}"
                 self.proxies.append(proxy_url)

@@ -16,10 +16,7 @@ BETANO_URL = "https://www.betano.bet.br/sport/futebol/brasil/brasileirao-serie-a
 
 
 def collect():
-    """Collect match odds from Betano using Playwright with proxy rotation."""
-    browser, context = get_browser_context(p, scraper_name="betano")
-    page = context.new_page()
-    
+    """Collect match odds from Betano using Playwright with proxy rotation."""    
     with sync_playwright() as p:
         browser, context = get_browser_context(p, scraper_name="betano")
         page = context.new_page()

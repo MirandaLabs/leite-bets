@@ -105,3 +105,4 @@ def collect():
             raise ScraperError(f"Erro coletando Esportes da Sorte: {str(e)}")
         finally:
             browser.close()
+            # forçar re build

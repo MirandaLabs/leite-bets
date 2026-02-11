@@ -16,8 +16,6 @@ MAX_RETRIES = 3  # Número máximo de vezes que ele vai tentar com IPs diferente
 
 def collect():
     """Collect match odds from Superbet using Playwright with proxy rotation and auto-retry."""
-    browser, context = get_browser_context(p, scraper_name="betano")
-    page = context.new_page()
     
     with sync_playwright() as p:
         # Loop de tentativas
