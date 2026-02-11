@@ -25,9 +25,7 @@ def get_browser_context(playwright, user_data_dir="storage/browser", scraper_nam
     
     context = browser.new_context(
         user_agent=(
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/120.0.0.0 Safari/537.36"
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36 OPR/126.0.0.0"
         ),
         viewport={"width": 1366, "height": 768},
         locale="pt-BR",
