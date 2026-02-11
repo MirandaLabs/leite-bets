@@ -1,4 +1,5 @@
 from playwright.sync_api import sync_playwright, TimeoutError
+import logging
 
 MAX_RETRIES = 3
 logger = logging.getLogger(__name__)
