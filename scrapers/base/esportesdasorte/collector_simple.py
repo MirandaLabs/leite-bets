@@ -19,11 +19,11 @@ def collect():
 
         try:
             logger.info(f"Abrindo: {ESPORTESDASORTE_URL}")
-            page.goto(ESPORTESDASORTE_URL, timeout=60000, wait_until="domcontentloaded")
+            page.goto(ESPORTESDASORTE_URL, timeout=120000, wait_until="domcontentloaded")
             
             # O SEGREDO: Esperar a tabela do Angular renderizar
             logger.info("Aguardando a tabela de jogos carregar...")
-            page.wait_for_selector("div.fixture-body", timeout=20000)
+            page.wait_for_selector("div.fixture-body", timeout=30000)
             
             # Conta quantos jogos carregaram na tela
             match_rows = page.locator("div.fixture-body")

@@ -1,3 +1,5 @@
+from playwright.sync_api import sync_playwright, TimeoutError
+
 def collect():
     """Collect match odds from Superbet"""
     
