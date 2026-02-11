@@ -66,6 +66,43 @@ python main.py
 python telegram_bot.py
 ```
 
+## 🔒 Configuração de Proxies
+
+O sistema suporta **proxies residenciais rotativos** para evitar bloqueios e rate limiting.
+
+### Modo Rotativo (Recomendado) 🔄
+
+Use proxies residenciais da Webshare com rotação automática:
+
+```env
+# .env
+PROXY_MODE=rotating
+WEBSHARE_PROXY_USERNAME=seu_usuario
+WEBSHARE_PROXY_PASSWORD=sua_senha
+WEBSHARE_PROXY_SERVER=p.webshare.io
+WEBSHARE_PROXY_PORT=80
+PROXY_STICKY_SESSION=true
+```
+
+### Modo Estático 📌
+
+Ou use seus próprios IPs fixos:
+
+```env
+PROXY_MODE=static
+IP_1=192.168.1.1:8080
+IP_2=192.168.1.2:8080
+# ... até IP_10
+```
+
+### Testar Configuração
+
+```bash
+python test_proxy.py
+```
+
+**📚 Documentação completa:** [PROXY_WEBSHARE_ROTATIVO.md](PROXY_WEBSHARE_ROTATIVO.md)
+
 ## 🔌 API Endpoints
 
 ### POST `/api/odds/update`
