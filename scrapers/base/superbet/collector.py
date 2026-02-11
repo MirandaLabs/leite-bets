@@ -5,6 +5,8 @@ from scrapers.base.superbet.parser import parse_matchresult_from_main_page
 from scrapers.shared.errors import ScraperError
 from scrapers.shared.browser import get_browser_context
 
+from playwright_stealth import stealth_sync
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -14,6 +16,8 @@ MAX_RETRIES = 3  # Número máximo de vezes que ele vai tentar com IPs diferente
 
 def collect():
     """Collect match odds from Superbet using Playwright with proxy rotation and auto-retry."""
+    browser, context = get_browser_context(p, scraper_name="betano")
+    page = context.new_page()
     
     with sync_playwright() as p:
         # Loop de tentativas
@@ -25,6 +29,7 @@ def collect():
             
             try:
                 page = context.new_page()
+                stealth_sync(page)
                 logger.info(f"Opening Superbet URL: {SUPERBET_URL}")
                 page.goto(SUPERBET_URL, timeout=60000, wait_until="domcontentloaded")
                 

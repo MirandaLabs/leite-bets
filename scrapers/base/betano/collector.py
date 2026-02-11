@@ -6,6 +6,8 @@ from scrapers.base.betano.parser import parse_matchresult
 from scrapers.shared.errors import ScraperError
 from scrapers.shared.browser import get_browser_context
 
+from playwright_stealth import stealth_sync
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -15,10 +17,13 @@ BETANO_URL = "https://www.betano.bet.br/sport/futebol/brasil/brasileirao-serie-a
 
 def collect():
     """Collect match odds from Betano using Playwright with proxy rotation."""
+    browser, context = get_browser_context(p, scraper_name="betano")
+    page = context.new_page()
     
     with sync_playwright() as p:
         browser, context = get_browser_context(p, scraper_name="betano")
         page = context.new_page()
+        stealth_sync(page)
 
         try:
             logger.info(f"Opening Betano URL: {BETANO_URL}")
