@@ -37,7 +37,7 @@ class ProxyManager:
         random_session_id = random.randint(1, 100000)
         
         # Monta o usuário (ex: zecdovnb-8452)
-        user = f"{self.user_prefix}BR-{random_id}"
+        user = f"{self.user_prefix}BR-{random_session_id}"
         
         # Monta a URL final
         proxy_url = f"http://{user}:{self.password}@{self.host}:{self.port}"
