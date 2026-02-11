@@ -5,3 +5,5 @@ requests
 fastapi
 uvicorn[standard]
 playwright-stealth==1.0.6
+urllib3==1.26.18
+requests==2.31.0
